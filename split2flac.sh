@@ -20,6 +20,12 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+# Dependencies:
+#          shntool, cuetools
+# SPLIT:   flac, wavpack, mac
+# CONVERT: flac, id3lib, lame, vorbis-tools
+# ART:     ImageMagick
+
 CONFIG="${HOME}/.split2flac"
 TMPCUE="${HOME}/.split2flac_sheet.cue"
 TMPPIC="${HOME}/.split2flac_cover.jpg"
@@ -29,6 +35,8 @@ NORENAME=0
 NOPIC=0
 REMOVE=0
 PIC_SIZE="192x192"
+FORMAT=$(echo $0 | sed 's/^.*2//;s/\..*//')
+FORMAT=${FORMAT:-"flac"}
 
 # load settings
 eval $(cat "${CONFIG}" 2>/dev/null)
@@ -42,25 +50,27 @@ FORCE=0
 HELP="Usage: split2flac.sh [OPTIONS] FILE
          -o DIRECTORY * - set output directory
          -cue FILE      - use file as a cue sheet
+         -f FORMAT      - use specified output format (current is \${FORMAT})
          -c FILE      * - use file as a cover image
          -nc          * - do not set any cover images
-         -cs WxH      * - set cover image size (current is ${PIC_SIZE})
+         -cs WxH      * - set cover image size (current is \${PIC_SIZE})
          -d           * - create artist/album subdirs
          -nd          * - do not create any subdirs
          -r           * - rename tracks to include title
-         -nr          * - do not rename tracks (numbers only, e.g. '01.flac')
+         -nr          * - do not rename tracks (numbers only, e.g. '01.\${FORMAT}')
          -p             - dry run
          -D           * - delete original file
          -nD          * - do not remove the original
          -f             - force deletion without asking
-         -s             - save configuration to \"${CONFIG}\"
+         -s             - save configuration to \"\${CONFIG}\"
          -h             - print this message
          -H             - print README
 
 * - option has effect on configuration if -s option passed.
-NOTE: '-c some_file.jpg -s' only allows cover images, it doesn't set a default one."
+NOTE: '-c some_file.jpg -s' only allows cover images, it doesn't set a default one.
+Supported FORMATs: flac, mp3, ogg."
 
-README="split2flac.sh splits one big APE/FLAC/WV file to FLAC tracks with tagging and renaming.
+README="split2flac.sh splits one big APE/FLAC/WV file to FLAC/MP3/OGG tracks with tagging and renaming.
     It's better to pass '-p' option to see what will happen when actually splitting tracks.
     You may want to pass '-s' option for the first run to save default configuration
 (output dir, cover image size, etc.) so you won't need to pass a lot of options
@@ -73,6 +83,7 @@ do
     case $1 in
         -o)   DIR=$2; shift;;
         -cue) CUE=$2; shift;;
+        -f)   FORMAT=$2; shift;;
         -c)   NOPIC=0; PIC=$2; shift;;
         -nc)  NOPIC=1;;
         -cs)  PIC_SIZE=$2; shift;;
@@ -85,13 +96,13 @@ do
         -nD)  REMOVE=0;;
         -f)   FORCE=1;;
         -s)   SAVE=1;;
-        -h)   echo "${HELP}"; exit 0;;
+        -h)   eval "echo \"${HELP}\""; exit 0;;
         -H)   echo "${README}"; exit 0;;
         *)
             if [ -r "${FILE}" ]
             then
                 echo "Unknown option $1"
-                echo "${HELP}"
+                eval "echo \"${HELP}\""
                 exit 1
             elif [ ! -r "$1" ]
             then
@@ -105,6 +116,8 @@ do
 done
 
 METAFLAC="metaflac --no-utf8-convert"
+VORBISCOMMENT="vorbiscomment -R -a"
+ID3TAG="id3tag -2"
 
 # search for a cue sheet if not specified
 if [ -z "${CUE}" ]
@@ -142,7 +155,7 @@ then
 fi
 
 # print some info and check arguments
-echo "Input file  :" ${FILE:?"${HELP}"}
+echo "Input file  :" ${FILE:?"No input filename given. Use -h for help."}
 echo "Cue sheet   :" ${CUE:?"No cue sheet"}
 
 # search for a front cover image
@@ -264,9 +277,16 @@ then
         exit 1
     fi
 
+    case ${FORMAT} in
+        flac) ENC="flac flac -8 - -o %f";;
+        mp3)  ENC="cust ext=mp3 lame --preset extreme - %f";;
+        ogg)  ENC="cust ext=ogg oggenc -q 10 - -o %f";;
+        *)    echo "Unknown output format ${FORMAT}"; exit 1;;
+    esac
+
     # split to tracks
     cuebreakpoints "${CUE}" | \
-        shnsplit -O never -o "flac flac -8 - -o %f"  -d "${OUT}" -t "%n" "${FILE}"
+        shnsplit -O never -o "${ENC}" -d "${OUT}" -t "%n" "${FILE}"
     if [ $? -ne 0 ]
     then
         echo "Failed to split"
@@ -295,15 +315,15 @@ i=1
 while [ $i -le ${TRACKS_NUM} ]
 do
     TAG_TITLE=$(cueprint -n $i -t %t "${CUE}")
-    f="${OUT}/$(printf %02i $i).flac"
-    FILE_TRACK=$(basename "$f" .flac)
+    f="${OUT}/$(printf %02i $i).${FORMAT}"
+    FILE_TRACK=$(basename "$f" .${FORMAT})
     FILE_TITLE=$(echo ${TAG_TITLE} | ${VALIDATE})
 
     echo "$i: ${TAG_TITLE}"
 
     if [ ${NORENAME} -ne 1 ]
     then
-        FINAL="${OUT}/${FILE_TRACK} - ${FILE_TITLE}.flac"
+        FINAL="${OUT}/${FILE_TRACK} - ${FILE_TITLE}.${FORMAT}"
         if [ ${DRY} -ne 1 ]
         then
             mv "$f" "${FINAL}"
@@ -319,25 +339,62 @@ do
 
     if [ ${DRY} -ne 1 ]
     then
-        ${METAFLAC} --remove-all-tags \
-            --set-tag="ARTIST=${TAG_ARTIST}" \
-            --set-tag="ALBUM=${TAG_ALBUM}" \
-            --set-tag="TITLE=${TAG_TITLE}" \
-            --set-tag="TRACKNUMBER=$i" \
-            "${FINAL}"
-        RES=$?
+        case ${FORMAT} in
+            flac)
+                ${METAFLAC} --remove-all-tags \
+                    --set-tag="ARTIST=${TAG_ARTIST}" \
+                    --set-tag="ALBUM=${TAG_ALBUM}" \
+                    --set-tag="TITLE=${TAG_TITLE}" \
+                    --set-tag="TRACKNUMBER=$i" \
+                    "${FINAL}" >/dev/null
+                RES=$?
 
-        if [ -n "${TAG_DATE}" ]
-        then
-            ${METAFLAC} --set-tag="DATE=${TAG_DATE}" "${FINAL}"
-            RES=$((${RES} + $?))
-        fi
+                if [ -n "${TAG_DATE}" ]
+                then
+                    ${METAFLAC} --set-tag="DATE=${TAG_DATE}" "${FINAL}" >/dev/null
+                    RES=$((${RES} + $?))
+                fi
 
-        if [ -n "${PIC}" ]
-        then
-            ${METAFLAC} --import-picture-from="${PIC}" "${FINAL}"
-            RES=$((${RES} + $?))
-        fi
+                if [ -n "${PIC}" ]
+                then
+                    ${METAFLAC} --import-picture-from="${PIC}" "${FINAL}" >/dev/null
+                    RES=$((${RES} + $?))
+                fi
+                ;;
+
+            mp3)
+                ${ID3TAG} "-a${TAG_ARTIST}" \
+                    "-A${TAG_ALBUM}" \
+                    "-s${TAG_TITLE}" \
+                    "-t$i" \
+                    "-T${TRACKS_NUM}" \
+                    "${FINAL}" >/dev/null
+                RES=$?
+
+                if [ -n "${TAG_DATE}" ]
+                then
+                    ${ID3TAG} -y"${TAG_DATE}" "${FINAL}" >/dev/null
+                    RES=$((${RES} + $?))
+                fi
+                ;;
+
+            ogg)
+                ${VORBISCOMMENT} "${FINAL}" \
+                    -t "ARTIST=${TAG_ARTIST}" \
+                    -t "ALBUM=${TAG_ALBUM}" \
+                    -t "TITLE=${TAG_TITLE}" \
+                    -t "TRACKNUMBER=$i" >/dev/null
+                RES=$?
+
+                if [ -n "${TAG_DATE}" ]
+                then
+                    ${VORBISCOMMENT} "${FINAL}" -t "DATE=${TAG_DATE}" >/dev/null
+                    RES=$((${RES} + $?))
+                fi
+                ;;
+            *)    echo "Unknown output format ${FORMAT}"; exit 1;;
+        esac
+
 
         if [ ${RES} -ne 0 ]
         then
