@@ -193,7 +193,7 @@ fi
 echo "Cover image :" ${PIC:-"not set"}
 echo "Output dir  :" ${DIR:?"Output directory wasn't set"}
 
-
+# file removal warning
 if [ ${REMOVE} -eq 1 ]
 then
     echo -n "Also remove original"
@@ -394,7 +394,6 @@ do
                 ;;
             *)    echo "Unknown output format ${FORMAT}"; exit 1;;
         esac
-
 
         if [ ${RES} -ne 0 ]
         then
