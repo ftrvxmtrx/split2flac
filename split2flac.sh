@@ -80,7 +80,7 @@ every time, only a filename.
 # parse arguments
 while [ "$1" ]
 do
-    case $1 in
+    case "$1" in
         -o)   DIR=$2; shift;;
         -cue) CUE=$2; shift;;
         -f)   FORMAT=$2; shift;;
