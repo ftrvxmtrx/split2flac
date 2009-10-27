@@ -218,7 +218,7 @@ then
 fi
 
 GETTAG="cueprint -n 1 -t"
-VALIDATE="tr -d -C \"[:space:][:alnum:]&\-_#,.'\""
+VALIDATE="sed s/[^[:space:][:alnum:]]&\-_#,.'\"//g"
 
 # get common tags
 TAG_ARTIST=$(${GETTAG} %P "${CUE}")
