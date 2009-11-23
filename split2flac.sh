@@ -78,8 +78,7 @@ every time, only a filename.
     Script will try to find CUE sheet if it wasn't specified."
 
 # parse arguments
-while [ "$1" ]
-do
+while [ "$1" ]; do
     case "$1" in
         -o)   DIR=$2; shift;;
         -cue) CUE=$2; shift;;
@@ -99,13 +98,11 @@ do
         -h)   eval "echo \"${HELP}\""; exit 0;;
         -H)   echo "${README}"; exit 0;;
         *)
-            if [ -r "${FILE}" ]
-            then
+            if [ -r "${FILE}" ]; then
                 echo "Unknown option $1"
                 eval "echo \"${HELP}\""
                 exit 1
-            elif [ ! -r "$1" ]
-            then
+            elif [ ! -r "$1" ]; then
                 echo "Unable to read $1"
                 exit 1
             else
@@ -120,30 +117,24 @@ VORBISCOMMENT="vorbiscomment -R -a"
 ID3TAG="id3tag -2"
 
 # search for a cue sheet if not specified
-if [ -z "${CUE}" ]
-then
+if [ -z "${CUE}" ]; then
     CUE="${FILE}.cue"
-    if [ ! -r "${CUE}" ]
-    then
+    if [ ! -r "${CUE}" ]; then
         CUE=$(echo ${FILE} | sed 's/[^\.]*$//')cue
-        if [ ! -r "${CUE}" ]
-        then
+        if [ ! -r "${CUE}" ]; then
             # try to extract internal one
             # MacOSX sed doesn't have 'I' (case insensitive) flag!
             CUESHEET=$(${METAFLAC} --show-tag=CUESHEET "${FILE}" 2>/dev/null | sed 's/[Cc][Uu][Ee][Ss][Hh][Ee][Ee][Tt]=//')
 
-            if [ -z "${CUESHEET}" ]
-            then
+            if [ -z "${CUESHEET}" ]; then
                 CUESHEET=$(wvunpack -q -c "${FILE}" 2>/dev/null)
             fi
 
-            if [ "${CUESHEET}" ]
-            then
+            if [ "${CUESHEET}" ]; then
                 CUE="${TMPCUE}"
                 echo "${CUESHEET}" > "${CUE}"
 
-                if [ $? -ne 0 ]
-                then
+                if [ $? -ne 0 ]; then
                     echo "Unable to save internal cue sheet"
                     exit 1
                 fi
@@ -159,29 +150,23 @@ echo "Input file  :" ${FILE:?"No input filename given. Use -h for help."}
 echo "Cue sheet   :" ${CUE:?"No cue sheet"}
 
 # search for a front cover image
-if [ ${NOPIC} -eq 1 ]
-then
+if [ ${NOPIC} -eq 1 ]; then
     unset PIC
-elif [ -z "${PIC}" ]
-then
+elif [ -z "${PIC}" ]; then
     # try common names 
     SDIR=$(dirname "${FILE}")
 
-    for i in cover.jpg front_cover.jpg folder.jpg
-    do
-        if [ -r "${SDIR}/$i" ]
-        then
+    for i in cover.jpg front_cover.jpg folder.jpg; do
+        if [ -r "${SDIR}/$i" ]; then
             PIC="${SDIR}/$i"
             break
         fi
     done
 
     # try to extract internal one
-    if [ -z "${PIC}" ]
-    then
+    if [ -z "${PIC}" ]; then
         ${METAFLAC} --export-picture-to="${TMPPIC}" "${FILE}" 2>/dev/null
-        if [ $? -ne 0 ]
-        then
+        if [ $? -ne 0 ]; then
             echo "Unable to export internal front cover image"
             unset PIC
         else
@@ -194,11 +179,9 @@ echo "Cover image :" ${PIC:-"not set"}
 echo "Output dir  :" ${DIR:?"Output directory wasn't set"}
 
 # file removal warning
-if [ ${REMOVE} -eq 1 ]
-then
+if [ ${REMOVE} -eq 1 ]; then
     echo -n "Also remove original"
-    if [ ${FORCE} -eq 1 ]
-    then
+    if [ ${FORCE} -eq 1 ]; then
         echo
     else
         echo " if user says 'y'"
@@ -206,8 +189,7 @@ then
 fi
 
 # save configuration if needed
-if [ ${SAVE} -eq 1 ]
-then
+if [ ${SAVE} -eq 1 ]; then
     echo "DIR=\"${DIR}\"" > "${CONFIG}"
     echo "NOSUBDIRS=${NOSUBDIRS}" >> "${CONFIG}"
     echo "NORENAME=${NORENAME}" >> "${CONFIG}"
@@ -230,10 +212,8 @@ YEAR=$(echo ${YEAR} | tr -d -C '[:digit:]')
 
 unset TAG_DATE
 
-if [ -n "${YEAR}" ]
-then
-    if [ ${YEAR} -ne 0 ]
-    then
+if [ -n "${YEAR}" ]; then
+    if [ ${YEAR} -ne 0 ]; then
         TAG_DATE="${YEAR}"
     fi
 fi
@@ -241,8 +221,7 @@ fi
 echo
 echo "Artist : ${TAG_ARTIST}"
 echo "Album  : ${TAG_ALBUM}"
-if [ -n "${TAG_DATE}" ]
-then
+if [ -n "${TAG_DATE}" ]; then
     echo "Year   : ${TAG_DATE}"
 fi
 echo "Tracks : ${TRACKS_NUM}"
@@ -251,13 +230,11 @@ echo
 # prepare output directory
 OUT="${DIR}"
 
-if [ ${NOSUBDIRS} -ne 1 ]
-then
+if [ ${NOSUBDIRS} -ne 1 ]; then
     DIR_ARTIST=$(echo ${TAG_ARTIST} | ${VALIDATE})
     DIR_ALBUM=$(echo ${TAG_ALBUM} | ${VALIDATE})
 
-    if [ "${TAG_DATE}" ]
-    then
+    if [ "${TAG_DATE}" ]; then
         DIR_ALBUM="${TAG_DATE} - ${DIR_ALBUM}"
     fi
 
@@ -266,13 +243,11 @@ fi
 
 echo "Saving tracks to \"${OUT}\""
 
-if [ ${DRY} -ne 1 ]
-then
+if [ ${DRY} -ne 1 ]; then
     # create output dir
     mkdir -p "${OUT}"
 
-    if [ $? -ne 0 ]
-    then
+    if [ $? -ne 0 ]; then
         echo "Failed to create output directory"
         exit 1
     fi
@@ -287,18 +262,15 @@ then
     # split to tracks
     cuebreakpoints "${CUE}" | \
         shnsplit -O never -o "${ENC}" -d "${OUT}" -t "%n" "${FILE}"
-    if [ $? -ne 0 ]
-    then
+    if [ $? -ne 0 ]; then
         echo "Failed to split"
         exit 1
     fi
 
     # prepare cover image
-    if [ "${PIC}" ]
-    then
+    if [ "${PIC}" ]; then
         convert "${PIC}" -resize "${PIC_SIZE}" "${TMPPIC}"
-        if [ $? -eq 0 ]
-        then
+        if [ $? -eq 0 ]; then
             PIC="${TMPPIC}"
         else
             echo "Failed to convert cover image"
@@ -312,8 +284,7 @@ echo
 echo "Setting tags"
 
 i=1
-while [ $i -le ${TRACKS_NUM} ]
-do
+while [ $i -le ${TRACKS_NUM} ]; do
     TAG_TITLE=$(cueprint -n $i -t %t "${CUE}")
     f="${OUT}/$(printf %02i $i).${FORMAT}"
     FILE_TRACK=$(basename "$f" .${FORMAT})
@@ -321,14 +292,11 @@ do
 
     echo "$i: ${TAG_TITLE}"
 
-    if [ ${NORENAME} -ne 1 ]
-    then
+    if [ ${NORENAME} -ne 1 ]; then
         FINAL="${OUT}/${FILE_TRACK} - ${FILE_TITLE}.${FORMAT}"
-        if [ ${DRY} -ne 1 ]
-        then
+        if [ ${DRY} -ne 1 ]; then
             mv "$f" "${FINAL}"
-            if [ $? -ne 0 ]
-            then
+            if [ $? -ne 0 ]; then
                 echo "Failed to rename track file"
                 exit 1
             fi
@@ -337,8 +305,7 @@ do
         FINAL="$f"
     fi
 
-    if [ ${DRY} -ne 1 ]
-    then
+    if [ ${DRY} -ne 1 ]; then
         case ${FORMAT} in
             flac)
                 ${METAFLAC} --remove-all-tags \
@@ -349,14 +316,12 @@ do
                     "${FINAL}" >/dev/null
                 RES=$?
 
-                if [ -n "${TAG_DATE}" ]
-                then
+                if [ -n "${TAG_DATE}" ]; then
                     ${METAFLAC} --set-tag="DATE=${TAG_DATE}" "${FINAL}" >/dev/null
                     RES=$((${RES} + $?))
                 fi
 
-                if [ -n "${PIC}" ]
-                then
+                if [ -n "${PIC}" ]; then
                     ${METAFLAC} --import-picture-from="${PIC}" "${FINAL}" >/dev/null
                     RES=$((${RES} + $?))
                 fi
@@ -371,8 +336,7 @@ do
                     "${FINAL}" >/dev/null
                 RES=$?
 
-                if [ -n "${TAG_DATE}" ]
-                then
+                if [ -n "${TAG_DATE}" ]; then
                     ${ID3TAG} -y"${TAG_DATE}" "${FINAL}" >/dev/null
                     RES=$((${RES} + $?))
                 fi
@@ -386,8 +350,7 @@ do
                     -t "TRACKNUMBER=$i" >/dev/null
                 RES=$?
 
-                if [ -n "${TAG_DATE}" ]
-                then
+                if [ -n "${TAG_DATE}" ]; then
                     ${VORBISCOMMENT} "${FINAL}" -t "DATE=${TAG_DATE}" >/dev/null
                     RES=$((${RES} + $?))
                 fi
@@ -395,8 +358,7 @@ do
             *)    echo "Unknown output format ${FORMAT}"; exit 1;;
         esac
 
-        if [ ${RES} -ne 0 ]
-        then
+        if [ ${RES} -ne 0 ]; then
             echo "Failed to set tags for track"
             exit 1
         fi
@@ -410,18 +372,15 @@ done
 rm -f "${TMPPIC}"
 rm -f "${TMPCUE}"
 
-if [ ${DRY} -ne 1 -a ${REMOVE} -eq 1 ]
-then
+if [ ${DRY} -ne 1 -a ${REMOVE} -eq 1 ]; then
     YEP="n"
 
-    if [ ${FORCE} -ne 1 ]
-    then
+    if [ ${FORCE} -ne 1 ]; then
         echo -n "Are you sure you want to delete original? [y] >"
         read YEP
     fi
 
-    if [ "${YEP}" = "y" -o ${FORCE} -eq 1 ]
-    then
+    if [ "${YEP}" = "y" -o ${FORCE} -eq 1 ]; then
         rm -f "${FILE}"
     fi
 fi
