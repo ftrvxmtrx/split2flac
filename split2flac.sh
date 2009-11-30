@@ -25,6 +25,7 @@
 # SPLIT:   flac, wavpack, mac
 # CONVERT: flac, id3lib, lame, vorbis-tools
 # ART:     ImageMagick
+# CHARSET: iconv
 
 CONFIG="${HOME}/.split2flac"
 TMPCUE="${HOME}/.split2flac_sheet.cue"
@@ -45,58 +46,61 @@ SAVE=0
 unset PIC
 unset FILE
 unset CUE
+unset CHARSET
 FORCE=0
 
 HELP="Usage: split2flac.sh [OPTIONS] FILE
-         -o DIRECTORY * - set output directory
-         -cue FILE      - use file as a cue sheet
-         -f FORMAT      - use specified output format (current is \${FORMAT})
-         -c FILE      * - use file as a cover image
-         -nc          * - do not set any cover images
-         -cs WxH      * - set cover image size (current is \${PIC_SIZE})
-         -d           * - create artist/album subdirs
-         -nd          * - do not create any subdirs
-         -r           * - rename tracks to include title
-         -nr          * - do not rename tracks (numbers only, e.g. '01.\${FORMAT}')
-         -p             - dry run
-         -D           * - delete original file
-         -nD          * - do not remove the original
-         -f             - force deletion without asking
-         -s             - save configuration to \"\${CONFIG}\"
-         -h             - print this message
-         -H             - print README
+         -o DIRECTORY        * - set output directory
+         -cue FILE             - use file as a cue sheet
+         -f FORMAT             - use specified output format (current is \${FORMAT})
+         -c FILE             * - use file as a cover image
+         -cuecharset CHARSET   - convert cue sheet from CHARSET to UTF-8 (no conversion by default)
+         -nc                 * - do not set any cover images
+         -cs WxH             * - set cover image size (current is \${PIC_SIZE})
+         -d                  * - create artist/album subdirs
+         -nd                 * - do not create any subdirs
+         -r                  * - rename tracks to include title
+         -nr                 * - do not rename tracks (numbers only, e.g. '01.\${FORMAT}')
+         -p                    - dry run
+         -D                  * - delete original file
+         -nD                 * - do not remove the original
+         -f                    - force deletion without asking
+         -s                    - save configuration to \"\${CONFIG}\"
+         -h                    - print this message
+         -H                    - print README
 
 * - option has effect on configuration if -s option passed.
 NOTE: '-c some_file.jpg -s' only allows cover images, it doesn't set a default one.
 Supported FORMATs: flac, mp3, ogg."
 
 README="split2flac.sh splits one big APE/FLAC/WV file to FLAC/MP3/OGG tracks with tagging and renaming.
-    It's better to pass '-p' option to see what will happen when actually splitting tracks.
-    You may want to pass '-s' option for the first run to save default configuration
+It's better to pass '-p' option to see what will happen when actually splitting tracks.
+You may want to pass '-s' option for the first run to save default configuration
 (output dir, cover image size, etc.) so you won't need to pass a lot of options
-every time, only a filename.
-    Script will try to find CUE sheet if it wasn't specified."
+every time, just a filename.
+Script will try to find CUE sheet if it wasn't specified. It also supports internal CUE sheets."
 
 # parse arguments
 while [ "$1" ]; do
     case "$1" in
-        -o)   DIR=$2; shift;;
-        -cue) CUE=$2; shift;;
-        -f)   FORMAT=$2; shift;;
-        -c)   NOPIC=0; PIC=$2; shift;;
-        -nc)  NOPIC=1;;
-        -cs)  PIC_SIZE=$2; shift;;
-        -d)   NOSUBDIRS=0;;
-        -nd)  NOSUBDIRS=1;;
-        -r)   NORENAME=0;;
-        -nr)  NORENAME=1;;
-        -p)   DRY=1;;
-        -D)   REMOVE=1;;
-        -nD)  REMOVE=0;;
-        -f)   FORCE=1;;
-        -s)   SAVE=1;;
-        -h)   eval "echo \"${HELP}\""; exit 0;;
-        -H)   echo "${README}"; exit 0;;
+        -o)          DIR=$2; shift;;
+        -cue)        CUE=$2; shift;;
+        -f)          FORMAT=$2; shift;;
+        -c)          NOPIC=0; PIC=$2; shift;;
+        -cuecharset) CHARSET=$2; shift;;
+        -nc)         NOPIC=1;;
+        -cs)         PIC_SIZE=$2; shift;;
+        -d)          NOSUBDIRS=0;;
+        -nd)         NOSUBDIRS=1;;
+        -r)          NORENAME=0;;
+        -nr)         NORENAME=1;;
+        -p)          DRY=1;;
+        -D)          REMOVE=1;;
+        -nD)         REMOVE=0;;
+        -f)          FORCE=1;;
+        -s)          SAVE=1;;
+        -h)          eval "echo \"${HELP}\""; exit 0;;
+        -H)          echo "${README}"; exit 0;;
         *)
             if [ -r "${FILE}" ]; then
                 echo "Unknown option $1"
@@ -148,6 +152,22 @@ fi
 # print some info and check arguments
 echo "Input file  :" ${FILE:?"No input filename given. Use -h for help."}
 echo "Cue sheet   :" ${CUE:?"No cue sheet"}
+
+if [ -n "${CHARSET}" ]; then
+    echo "Cue charset : ${CHARSET} -> utf-8"
+    CUESHEET=$(iconv -f "${CHARSET}" -t utf-8 "${CUE}" 2>/dev/null)
+    if [ $? -ne 0 ]; then
+        echo "Unable to convert cue sheet from ${CHARSET} to utf-8"
+        exit 1
+    fi
+    CUE="${TMPCUE}"
+    echo "${CUESHEET}" > "${CUE}"
+
+    if [ $? -ne 0 ]; then
+        echo "Unable to save converted cue sheet"
+        exit 1
+    fi
+fi
 
 # search for a front cover image
 if [ ${NOPIC} -eq 1 ]; then
