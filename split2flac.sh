@@ -36,8 +36,7 @@ NORENAME=0
 NOPIC=0
 REMOVE=0
 PIC_SIZE="192x192"
-FORMAT=$(basename $0)
-FORMAT=${FORMAT#split2}
+FORMAT=${0##split2}
 FORMAT=${FORMAT%.sh}
 
 # load settings
