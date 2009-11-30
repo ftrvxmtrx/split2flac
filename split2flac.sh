@@ -36,8 +36,9 @@ NORENAME=0
 NOPIC=0
 REMOVE=0
 PIC_SIZE="192x192"
-FORMAT=$(echo $0 | sed 's/^.*2//;s/\..*//')
-FORMAT=${FORMAT:-"flac"}
+FORMAT=$(basename $0)
+FORMAT=${FORMAT#split2}
+FORMAT=${FORMAT%.sh}
 
 # load settings
 eval $(cat "${CONFIG}" 2>/dev/null)
