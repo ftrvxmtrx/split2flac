@@ -167,7 +167,6 @@ elif [ -z "${PIC}" ]; then
     if [ -z "${PIC}" ]; then
         ${METAFLAC} --export-picture-to="${TMPPIC}" "${FILE}" 2>/dev/null
         if [ $? -ne 0 ]; then
-            echo "Unable to export internal front cover image"
             unset PIC
         else
             PIC="${TMPPIC}"
