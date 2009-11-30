@@ -125,7 +125,7 @@ ID3TAG="id3tag -2"
 if [ -z "${CUE}" ]; then
     CUE="${FILE}.cue"
     if [ ! -r "${CUE}" ]; then
-        CUE=$(echo ${FILE} | sed 's/[^\.]*$//')cue
+        CUE="${FILE%.*}.cue"
         if [ ! -r "${CUE}" ]; then
             # try to extract internal one
             # MacOSX sed doesn't have 'I' (case insensitive) flag!
