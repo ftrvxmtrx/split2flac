@@ -36,7 +36,7 @@ NORENAME=0
 NOPIC=0
 REMOVE=0
 PIC_SIZE="192x192"
-FORMAT=${0##split2}
+FORMAT=${0##.*split2}
 FORMAT=${FORMAT%.sh}
 
 # load settings
@@ -49,7 +49,7 @@ unset CUE
 unset CHARSET
 FORCE=0
 
-HELP="Usage: split2flac.sh [OPTIONS] FILE
+HELP="Usage: split2\${FORMAT}.sh [OPTIONS] FILE
          -o DIRECTORY        * - set output directory
          -cue FILE             - use file as a cue sheet
          -f FORMAT             - use specified output format (current is \${FORMAT})
@@ -73,7 +73,7 @@ HELP="Usage: split2flac.sh [OPTIONS] FILE
 NOTE: '-c some_file.jpg -s' only allows cover images, it doesn't set a default one.
 Supported FORMATs: flac, mp3, ogg."
 
-README="split2flac.sh splits one big APE/FLAC/WV file to FLAC/MP3/OGG tracks with tagging and renaming.
+README="split2flac splits one big APE/FLAC/WV file to FLAC/MP3/OGG tracks with tagging and renaming.
 It's better to pass '-p' option to see what will happen when actually splitting tracks.
 You may want to pass '-s' option for the first run to save default configuration
 (output dir, cover image size, etc.) so you won't need to pass a lot of options
@@ -305,9 +305,9 @@ echo "Setting tags"
 i=1
 while [ $i -le ${TRACKS_NUM} ]; do
     TAG_TITLE=$(cueprint -n $i -t %t "${CUE}")
-    f="${OUT}/$(printf %02i $i).${FORMAT}"
-    FILE_TRACK=$(basename "$f" .${FORMAT})
+    FILE_TRACK="$(printf %02i $i)"
     FILE_TITLE=$(echo ${TAG_TITLE} | ${VALIDATE})
+    f="${OUT}/${FILE_TRACK}.${FORMAT}"
 
     echo "$i: ${TAG_TITLE}"
 
