@@ -127,8 +127,7 @@ if [ -z "${CUE}" ]; then
         CUE="${FILE%.*}.cue"
         if [ ! -r "${CUE}" ]; then
             # try to extract internal one
-            # MacOSX sed doesn't have 'I' (case insensitive) flag!
-            CUESHEET=$(${METAFLAC} --show-tag=CUESHEET "${FILE}" 2>/dev/null | sed 's/[Cc][Uu][Ee][Ss][Hh][Ee][Ee][Tt]=//')
+            CUESHEET=$(${METAFLAC} --show-tag=CUESHEET "${FILE}" 2>/dev/null | sed 's/cuesheet=//;s/CUESHEET=//')
 
             if [ -z "${CUESHEET}" ]; then
                 CUESHEET=$(wvunpack -q -c "${FILE}" 2>/dev/null)
