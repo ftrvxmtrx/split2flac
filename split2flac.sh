@@ -194,7 +194,7 @@ elif [ -z "${PIC}" ]; then
 fi
 
 echo "Cover image : ${PIC:-not set}"
-echo "Output dir  : ${DIR:?Output directory wasn't set}"
+echo "Output dir  : ${DIR:?Output directory was not set}"
 
 # file removal warning
 if [ ${REMOVE} -eq 1 ]; then
