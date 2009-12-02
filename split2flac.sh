@@ -36,8 +36,8 @@ NORENAME=0
 NOPIC=0
 REMOVE=0
 PIC_SIZE="192x192"
-FORMAT=${0##.*split2}
-FORMAT=${FORMAT%.sh}
+FORMAT="${0##.*split2}"
+FORMAT="${FORMAT%.sh}"
 
 # load settings
 eval $(cat "${CONFIG}" 2>/dev/null)
@@ -149,8 +149,8 @@ if [ -z "${CUE}" ]; then
 fi
 
 # print some info and check arguments
-echo "Input file  :" ${FILE:?"No input filename given. Use -h for help."}
-echo "Cue sheet   :" ${CUE:?"No cue sheet"}
+echo "Input file  : ${FILE:?'No input filename given. Use -h for help.'}"
+echo "Cue sheet   : ${CUE:?'No cue sheet'}"
 
 if [ -n "${CHARSET}" ]; then
     echo "Cue charset : ${CHARSET} -> utf-8"
@@ -193,8 +193,8 @@ elif [ -z "${PIC}" ]; then
     fi
 fi
 
-echo "Cover image :" ${PIC:-"not set"}
-echo "Output dir  :" ${DIR:?"Output directory wasn't set"}
+echo "Cover image : ${PIC:-'not set'}"
+echo "Output dir  : ${DIR:?'Output directory wasn\'t set'}"
 
 # file removal warning
 if [ ${REMOVE} -eq 1 ]; then
