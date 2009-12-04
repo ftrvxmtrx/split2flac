@@ -73,8 +73,8 @@ Usage: ${cZ}split2${FORMAT}.sh [${cU}OPTIONS$cZ] ${cU}FILE$cZ [${cU}OPTIONS$cZ]$
          $cG-D                  $cR*$cZ - delete original file
          $cG-nD                 $cR*$cZ - do not remove the original
          $cG-F$cZ                    - force deletion without asking
-         -s                    - save configuration to $cP\"${CONFIG}\"$cZ
-         -h                    - print this message
+         $cG-s$cZ                    - save configuration to $cP\"${CONFIG}\"$cZ
+         $cG-h$cZ                    - print this message
 
 $cR*$cZ - option affects configuration if $cP'-s'$cZ option passed.
 ${cP}NOTE: $cG'-c some_file.jpg -s'$cP only ${cU}allows$cZ$cP cover images, it doesn't set a default one.
