@@ -113,6 +113,7 @@ while [ "$1" ]; do
         -F)          FORCE=1;;
         -s)          SAVE=1;;
         -h|--help|-help) eval "$msg \"${HELP}\""; exit 0;;
+        -*) eval "$msg \"${HELP}\""; fatal "\nUnknown option $1";;
         *)
             if [ -r "${FILE}" ]; then
                 eval "$msg \"${HELP}\""
