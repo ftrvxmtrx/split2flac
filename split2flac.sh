@@ -49,36 +49,49 @@ unset CUE
 unset CHARSET
 FORCE=0
 
-HELP="Usage: split2\${FORMAT}.sh [OPTIONS] FILE
-         -o DIRECTORY        * - set output directory
-         -cue FILE             - use file as a cue sheet
-         -f FORMAT             - use specified output format (current is \${FORMAT})
-         -c FILE             * - use file as a cover image
-         -cuecharset CHARSET   - convert cue sheet from CHARSET to UTF-8 (no conversion by default)
-         -nc                 * - do not set any cover images
-         -cs WxH             * - set cover image size (current is \${PIC_SIZE})
-         -d                  * - create artist/album subdirs
-         -nd                 * - do not create any subdirs
-         -r                  * - rename tracks to include title
-         -nr                 * - do not rename tracks (numbers only, e.g. '01.\${FORMAT}')
-         -p                    - dry run
-         -D                  * - delete original file
-         -nD                 * - do not remove the original
-         -f                    - force deletion without asking
-         -s                    - save configuration to \"\${CONFIG}\"
+cR="\033[31m"
+cG="\033[32m"
+cP="\033[36m"
+cU="\033[4m"
+cZ="\033[0m"
+
+HELP="${cG}split2flac splits one big ${cU}APE/FLAC/WV$cZ$cG file to ${cU}FLAC/MP3/OGG$cZ$cG tracks with tagging and renaming.
+
+Usage: ${cZ}split2${FORMAT}.sh [${cU}OPTIONS$cZ] ${cU}FILE$cZ [${cU}OPTIONS$cZ]$cZ
+         $cG-p$cZ                    - dry run
+         $cG-o ${cU}DIRECTORY$cZ        $cR*$cZ - set output directory
+         $cG-cue ${cU}FILE$cZ             - use file as a cue sheet
+         $cG-f ${cU}FORMAT$cZ             - use specified output format $cP(current is ${FORMAT})$cZ
+         $cG-c ${cU}FILE$cZ             $cR*$cZ - use file as a cover image
+         $cG-cuecharset ${cU}CHARSET$cZ   - convert cue sheet from CHARSET to UTF-8 (no conversion by default)
+         $cG-nc                 ${cR}*$cZ - do not set any cover images
+         $cG-cs ${cU}WxH$cZ             $cR*$cZ - set cover image size $cP(current is ${PIC_SIZE})$cZ
+         $cG-d                  $cR*$cZ - create artist/album subdirs
+         $cG-nd                 $cR*$cZ - do not create any subdirs
+         $cG-r                  $cR*$cZ - rename tracks to include title
+         $cG-nr                 $cR*$cZ - do not rename tracks (numbers only, e.g. '01.${FORMAT}')
+         $cG-D                  $cR*$cZ - delete original file
+         $cG-nD                 $cR*$cZ - do not remove the original
+         $cG-F$cZ                    - force deletion without asking
+         -s                    - save configuration to $cP\"${CONFIG}\"$cZ
          -h                    - print this message
-         -H                    - print README
 
-* - option has effect on configuration if -s option passed.
-NOTE: '-c some_file.jpg -s' only allows cover images, it doesn't set a default one.
-Supported FORMATs: flac, mp3, ogg."
+$cR*$cZ - option has effect on configuration if $cP'-s'$cZ option passed.
+${cP}NOTE: $cG'-c some_file.jpg -s'$cP only ${cU}allows$cZ$cP cover images, it doesn't set a default one.
+${cZ}Supported $cU${cG}FORMATs${cZ}: flac, mp3, ogg.
 
-README="split2flac splits one big APE/FLAC/WV file to FLAC/MP3/OGG tracks with tagging and renaming.
-It's better to pass '-p' option to see what will happen when actually splitting tracks.
-You may want to pass '-s' option for the first run to save default configuration
+It's better to pass $cP'-p'$cZ option to see what will happen when actually splitting tracks.
+You may want to pass $cP'-s'$cZ option for the first run to save default configuration
 (output dir, cover image size, etc.) so you won't need to pass a lot of options
 every time, just a filename.
 Script will try to find CUE sheet if it wasn't specified. It also supports internal CUE sheets."
+
+msg="echo -e"
+
+fatal ( ) {
+    $msg "${cR}$1${cZ}"
+    exit 1
+}
 
 # parse arguments
 while [ "$1" ]; do
@@ -97,18 +110,15 @@ while [ "$1" ]; do
         -p)          DRY=1;;
         -D)          REMOVE=1;;
         -nD)         REMOVE=0;;
-        -f)          FORCE=1;;
+        -F)          FORCE=1;;
         -s)          SAVE=1;;
-        -h)          eval "echo \"${HELP}\""; exit 0;;
-        -H)          echo "${README}"; exit 0;;
+        -h|--help|-help) eval "$msg \"${HELP}\""; exit 0;;
         *)
             if [ -r "${FILE}" ]; then
-                echo "Unknown option $1"
-                eval "echo \"${HELP}\""
-                exit 1
+                eval "$msg \"${HELP}\""
+                fatal "\nUnknown option $1"
             elif [ ! -r "$1" ]; then
-                echo "Unable to read $1"
-                exit 1
+                fatal "Unable to read $1"
             else
                 FILE="$1"
             fi;;
@@ -119,6 +129,18 @@ done
 METAFLAC="metaflac --no-utf8-convert"
 VORBISCOMMENT="vorbiscomment -R -a"
 ID3TAG="id3tag -2"
+
+# print input filename
+$msg "${cG}Input file    :$cZ ${FILE:?No input filename given. Use -h for help.}$cZ"
+
+# check & print output format
+msg_format="${cG}Output format :$cZ"
+case ${FORMAT} in
+    flac) $msg "$msg_format FLAC";;
+    mp3)  $msg "$msg_format MP3";;
+    ogg)  $msg "$msg_format OGG VORBIS";;
+    *)    fatal "Unknown output format \"${FORMAT}\"";;
+esac
 
 # search for a cue sheet if not specified
 if [ -z "${CUE}" ]; then
@@ -138,8 +160,7 @@ if [ -z "${CUE}" ]; then
                 echo "${CUESHEET}" > "${CUE}"
 
                 if [ $? -ne 0 ]; then
-                    echo "Unable to save internal cue sheet"
-                    exit 1
+                    fatal "Unable to save internal cue sheet"
                 fi
             else
                 unset CUE
@@ -148,23 +169,20 @@ if [ -z "${CUE}" ]; then
     fi
 fi
 
-# print some info and check arguments
-echo "Input file  : ${FILE:?No input filename given. Use -h for help.}"
-echo "Cue sheet   : ${CUE:?No cue sheet}"
+# print cue sheet filename
+$msg "${cG}Cue sheet     :$cZ ${CUE:?No cue sheet}$cZ"
 
 if [ -n "${CHARSET}" ]; then
-    echo "Cue charset : ${CHARSET} -> utf-8"
+    $msg "${cG}Cue charset : $cP${CHARSET} -> utf-8$cZ"
     CUESHEET=$(iconv -f "${CHARSET}" -t utf-8 "${CUE}" 2>/dev/null)
     if [ $? -ne 0 ]; then
-        echo "Unable to convert cue sheet from ${CHARSET} to utf-8"
-        exit 1
+        fatal "Unable to convert cue sheet from ${CHARSET} to utf-8"
     fi
     CUE="${TMPCUE}"
     echo "${CUESHEET}" > "${CUE}"
 
     if [ $? -ne 0 ]; then
-        echo "Unable to save converted cue sheet"
-        exit 1
+        fatal "Unable to save converted cue sheet"
     fi
 fi
 
@@ -193,16 +211,16 @@ elif [ -z "${PIC}" ]; then
     fi
 fi
 
-echo "Cover image : ${PIC:-not set}"
-echo "Output dir  : ${DIR:?Output directory was not set}"
+$msg "${cG}Cover image   :$cZ ${PIC:-not set}"
+$msg "${cG}Output dir    :$cZ ${DIR:?Output directory was not set}"
 
 # file removal warning
 if [ ${REMOVE} -eq 1 ]; then
-    echo -n "Also remove original"
+    msg_removal="\n${cR}Also remove original"
     if [ ${FORCE} -eq 1 ]; then
-        echo
+        $msg "$msg_removal (WITHOUT ASKING)$cZ"
     else
-        echo " if user says 'y'"
+        $msg "$msg_removal if user says 'y'$cZ"
     fi
 fi
 
@@ -214,7 +232,7 @@ if [ ${SAVE} -eq 1 ]; then
     echo "NOPIC=${NOPIC}" >> "${CONFIG}"
     echo "REMOVE=${REMOVE}" >> "${CONFIG}"
     echo "PIC_SIZE=${PIC_SIZE}" >> "${CONFIG}"
-    echo "Configuration saved"
+    $msg "${cP}Configuration saved$cZ"
 fi
 
 GETTAG="cueprint -n 1 -t"
@@ -236,14 +254,12 @@ if [ -n "${YEAR}" ]; then
     fi
 fi
 
-echo
-echo "Artist : ${TAG_ARTIST}"
-echo "Album  : ${TAG_ALBUM}"
+$msg "\n${cG}Artist :$cZ ${TAG_ARTIST}"
+$msg "${cG}Album  :$cZ ${TAG_ALBUM}"
 if [ -n "${TAG_DATE}" ]; then
-    echo "Year   : ${TAG_DATE}"
+    $msg "${cG}Year   :$cZ ${TAG_DATE}"
 fi
-echo "Tracks : ${TRACKS_NUM}"
-echo
+$msg "${cG}Tracks :$cZ ${TRACKS_NUM}\n"
 
 # prepare output directory
 OUT="${DIR}"
@@ -259,30 +275,28 @@ if [ ${NOSUBDIRS} -ne 1 ]; then
     OUT="${OUT}/${DIR_ARTIST}/${DIR_ALBUM}"
 fi
 
-echo "Saving tracks to \"${OUT}\""
+$msg "${cP}Saving tracks to $cZ\"${OUT}\""
 
 if [ ${DRY} -ne 1 ]; then
     # create output dir
     mkdir -p "${OUT}"
 
     if [ $? -ne 0 ]; then
-        echo "Failed to create output directory"
-        exit 1
+        fatal "Failed to create output directory"
     fi
 
     case ${FORMAT} in
         flac) ENC="flac flac -8 - -o %f";;
         mp3)  ENC="cust ext=mp3 lame --preset extreme - %f";;
         ogg)  ENC="cust ext=ogg oggenc -q 10 - -o %f";;
-        *)    echo "Unknown output format ${FORMAT}"; exit 1;;
+        *)    fatal "Unknown output format ${FORMAT}";;
     esac
 
     # split to tracks
     cuebreakpoints "${CUE}" | \
         shnsplit -O never -o "${ENC}" -d "${OUT}" -t "%n" "${FILE}"
     if [ $? -ne 0 ]; then
-        echo "Failed to split"
-        exit 1
+        fatal "Failed to split"
     fi
 
     # prepare cover image
@@ -291,15 +305,14 @@ if [ ${DRY} -ne 1 ]; then
         if [ $? -eq 0 ]; then
             PIC="${TMPPIC}"
         else
-            echo "Failed to convert cover image"
+            $msg "${cR}Failed to convert cover image$cZ"
             unset PIC
         fi
     fi
 fi
 
 # set tags and rename
-echo
-echo "Setting tags"
+$msg "\n${cP}Setting tags$cZ"
 
 i=1
 while [ $i -le ${TRACKS_NUM} ]; do
@@ -308,15 +321,14 @@ while [ $i -le ${TRACKS_NUM} ]; do
     FILE_TITLE=$(echo ${TAG_TITLE} | ${VALIDATE})
     f="${OUT}/${FILE_TRACK}.${FORMAT}"
 
-    echo "$i: ${TAG_TITLE}"
+    $msg "$i: $cG${TAG_TITLE}$cZ"
 
     if [ ${NORENAME} -ne 1 ]; then
         FINAL="${OUT}/${FILE_TRACK} - ${FILE_TITLE}.${FORMAT}"
         if [ ${DRY} -ne 1 ]; then
             mv "$f" "${FINAL}"
             if [ $? -ne 0 ]; then
-                echo "Failed to rename track file"
-                exit 1
+                fatal "Failed to rename track file"
             fi
         fi
     else
@@ -373,16 +385,16 @@ while [ $i -le ${TRACKS_NUM} ]; do
                     RES=$((${RES} + $?))
                 fi
                 ;;
-            *)    echo "Unknown output format ${FORMAT}"; exit 1;;
+            *)
+                fatal "Unknown output format ${FORMAT}";;
         esac
 
         if [ ${RES} -ne 0 ]; then
-            echo "Failed to set tags for track"
-            exit 1
+            fatal "Failed to set tags for track"
         fi
     fi
 
-    echo "   -> ${FINAL}"
+    $msg "   -> ${cP}${FINAL}$cZ"
 
     i=$(($i + 1))
 done
@@ -403,5 +415,4 @@ if [ ${DRY} -ne 1 -a ${REMOVE} -eq 1 ]; then
     fi
 fi
 
-echo
-echo "Finished"
+$msg "\n${cP}Finished$cZ"
