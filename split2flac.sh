@@ -76,7 +76,7 @@ Usage: ${cZ}split2${FORMAT}.sh [${cU}OPTIONS$cZ] ${cU}FILE$cZ [${cU}OPTIONS$cZ]$
          -s                    - save configuration to $cP\"${CONFIG}\"$cZ
          -h                    - print this message
 
-$cR*$cZ - option has effect on configuration if $cP'-s'$cZ option passed.
+$cR*$cZ - option affects configuration if $cP'-s'$cZ option passed.
 ${cP}NOTE: $cG'-c some_file.jpg -s'$cP only ${cU}allows$cZ$cP cover images, it doesn't set a default one.
 ${cZ}Supported $cU${cG}FORMATs${cZ}: flac, mp3, ogg vorbis.
 
