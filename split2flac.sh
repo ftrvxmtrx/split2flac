@@ -55,7 +55,7 @@ cP="\033[36m"
 cU="\033[4m"
 cZ="\033[0m"
 
-HELP="${cG}split2flac splits one big ${cU}APE/FLAC/WV$cZ$cG file to ${cU}FLAC/MP3/OGG$cZ$cG tracks with tagging and renaming.
+HELP="${cG}split2flac splits one big ${cU}APE/FLAC/WV$cZ$cG file to ${cU}FLAC/MP3/OGG_VORBIS$cZ$cG tracks with tagging and renaming.
 
 Usage: ${cZ}split2${FORMAT}.sh [${cU}OPTIONS$cZ] ${cU}FILE$cZ [${cU}OPTIONS$cZ]$cZ
          $cG-p$cZ                    - dry run
@@ -78,7 +78,7 @@ Usage: ${cZ}split2${FORMAT}.sh [${cU}OPTIONS$cZ] ${cU}FILE$cZ [${cU}OPTIONS$cZ]$
 
 $cR*$cZ - option has effect on configuration if $cP'-s'$cZ option passed.
 ${cP}NOTE: $cG'-c some_file.jpg -s'$cP only ${cU}allows$cZ$cP cover images, it doesn't set a default one.
-${cZ}Supported $cU${cG}FORMATs${cZ}: flac, mp3, ogg.
+${cZ}Supported $cU${cG}FORMATs${cZ}: flac, mp3, ogg vorbis.
 
 It's better to pass $cP'-p'$cZ option to see what will happen when actually splitting tracks.
 You may want to pass $cP'-s'$cZ option for the first run to save default configuration
