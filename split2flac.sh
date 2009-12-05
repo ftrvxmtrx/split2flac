@@ -441,13 +441,7 @@ split_file ( ) {
 }
 
 split_collection ( ) {
-    while [ 1 ]; do
-        $(read -r FILE)
-
-        if [ ! $? -eq 0 ]; then
-            break
-        fi
-
+    while read -r FILE; do
         $msg "$cG>> $cC\"${FILE}\"$cZ"
         unset PIC
         unset CUE
