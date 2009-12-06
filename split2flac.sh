@@ -35,6 +35,7 @@ NOSUBDIRS=0
 NORENAME=0
 NOPIC=0
 REMOVE=0
+NOCOLORS=0
 PIC_SIZE="192x192"
 FORMAT="${0##*split2}"
 FORMAT="${FORMAT%.sh}"
@@ -46,41 +47,36 @@ SAVE=0
 unset PIC INPATH CUE CHARSET
 FORCE=0
 
-cR="\033[31m"
-cG="\033[32m"
-cC="\033[35m"
-cP="\033[36m"
-cU="\033[4m"
-cZ="\033[0m"
+HELP="\${cG}split2flac splits one big \${cU}APE/FLAC/WV\$cZ\$cG file to \${cU}FLAC/MP3/OGG_VORBIS\$cZ\$cG tracks with tagging and renaming.
 
-HELP="${cG}split2flac splits one big ${cU}APE/FLAC/WV$cZ$cG file to ${cU}FLAC/MP3/OGG_VORBIS$cZ$cG tracks with tagging and renaming.
+Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIONS\$cZ]\$cZ
+       \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}DIR\$cZ  [\${cU}OPTIONS\$cZ]\$cZ
+         \$cG-p\$cZ                    - dry run
+         \$cG-o \${cU}DIRECTORY\$cZ        \$cR*\$cZ - set output directory
+         \$cG-cue \${cU}FILE\$cZ             - use file as a cue sheet (does not work with \${cU}DIR\$cZ)
+         \$cG-cuecharset \${cU}CHARSET\$cZ   - convert cue sheet from CHARSET to UTF-8 (no conversion by default)
+         \$cG-f \${cU}FORMAT\$cZ             - use specified output format \$cP(current is \${FORMAT})\$cZ
+         \$cG-c \${cU}FILE\$cZ             \$cR*\$cZ - use file as a cover image (does not work with \${cU}DIR\$cZ)
+         \$cG-nc                 \${cR}*\$cZ - do not set any cover images
+         \$cG-cs \${cU}WxH\$cZ             \$cR*\$cZ - set cover image size \$cP(current is \${PIC_SIZE})\$cZ
+         \$cG-d                  \$cR*\$cZ - create artist/album subdirs (default)
+         \$cG-nd                 \$cR*\$cZ - do not create any subdirs
+         \$cG-r                  \$cR*\$cZ - rename tracks to include title (default)
+         \$cG-nr                 \$cR*\$cZ - do not rename tracks (numbers only, e.g. '01.\${FORMAT}')
+         \$cG-D                  \$cR*\$cZ - delete original file
+         \$cG-nD                 \$cR*\$cZ - do not remove the original (default)
+         \$cG-F\$cZ                    - force deletion without asking
+         \$cG-colors\$cZ             \$cR*\$cZ - colorized output (default)
+         \$cG-nocolors\$cZ           \$cR*\$cZ - turn off colors
+         \$cG-s\$cZ                    - save configuration to \$cP\"\${CONFIG}\"\$cZ
+         \$cG-h\$cZ                    - print this message
 
-Usage: ${cZ}split2${FORMAT}.sh [${cU}OPTIONS$cZ] ${cU}FILE$cZ [${cU}OPTIONS$cZ]$cZ
-       ${cZ}split2${FORMAT}.sh [${cU}OPTIONS$cZ] ${cU}DIR$cZ  [${cU}OPTIONS$cZ]$cZ
-         $cG-p$cZ                    - dry run
-         $cG-o ${cU}DIRECTORY$cZ        $cR*$cZ - set output directory
-         $cG-cue ${cU}FILE$cZ             - use file as a cue sheet (does not work with ${cU}DIR$cZ)
-         $cG-f ${cU}FORMAT$cZ             - use specified output format $cP(current is ${FORMAT})$cZ
-         $cG-c ${cU}FILE$cZ             $cR*$cZ - use file as a cover image (does not work with ${cU}DIR$cZ)
-         $cG-cuecharset ${cU}CHARSET$cZ   - convert cue sheet from CHARSET to UTF-8 (no conversion by default)
-         $cG-nc                 ${cR}*$cZ - do not set any cover images
-         $cG-cs ${cU}WxH$cZ             $cR*$cZ - set cover image size $cP(current is ${PIC_SIZE})$cZ
-         $cG-d                  $cR*$cZ - create artist/album subdirs
-         $cG-nd                 $cR*$cZ - do not create any subdirs
-         $cG-r                  $cR*$cZ - rename tracks to include title
-         $cG-nr                 $cR*$cZ - do not rename tracks (numbers only, e.g. '01.${FORMAT}')
-         $cG-D                  $cR*$cZ - delete original file
-         $cG-nD                 $cR*$cZ - do not remove the original
-         $cG-F$cZ                    - force deletion without asking
-         $cG-s$cZ                    - save configuration to $cP\"${CONFIG}\"$cZ
-         $cG-h$cZ                    - print this message
+\$cR*\$cZ - option affects configuration if \$cP'-s'\$cZ option passed.
+\${cP}NOTE: \$cG'-c some_file.jpg -s'$cP only \${cU}allows\$cZ\$cP cover images, it doesn't set a default one.
+\${cZ}Supported \$cU\${cG}FORMATs\${cZ}: flac, mp3, ogg vorbis.
 
-$cR*$cZ - option affects configuration if $cP'-s'$cZ option passed.
-${cP}NOTE: $cG'-c some_file.jpg -s'$cP only ${cU}allows$cZ$cP cover images, it doesn't set a default one.
-${cZ}Supported $cU${cG}FORMATs${cZ}: flac, mp3, ogg vorbis.
-
-It's better to pass $cP'-p'$cZ option to see what will happen when actually splitting tracks.
-You may want to pass $cP'-s'$cZ option for the first run to save default configuration
+It's better to pass \$cP'-p'\$cZ option to see what will happen when actually splitting tracks.
+You may want to pass \$cP'-s'\$cZ option for the first run to save default configuration
 (output dir, cover image size, etc.) so you won't need to pass a lot of options
 every time, just a filename.
 Script will try to find CUE sheet if it wasn't specified. It also supports internal CUE sheets."
@@ -91,14 +87,29 @@ emsg ( ) {
     $msg "${cR}$1${cZ}"
 }
 
+update_colors ( ) {
+    if [ "${NOCOLORS}" -eq 0 ]; then
+        cR="\033[31m"
+        cG="\033[32m"
+        cC="\033[35m"
+        cP="\033[36m"
+        cU="\033[4m"
+        cZ="\033[0m"
+    else
+        unset cR cG cC cP cU cZ
+    fi
+}
+
+update_colors
+
 # parse arguments
 while [ "$1" ]; do
     case "$1" in
         -o)          DIR=$2; shift;;
         -cue)        CUE=$2; shift;;
+        -cuecharset) CHARSET=$2; shift;;
         -f)          FORMAT=$2; shift;;
         -c)          NOPIC=0; PIC=$2; shift;;
-        -cuecharset) CHARSET=$2; shift;;
         -nc)         NOPIC=1;;
         -cs)         PIC_SIZE=$2; shift;;
         -d)          NOSUBDIRS=0;;
@@ -109,6 +120,8 @@ while [ "$1" ]; do
         -D)          REMOVE=1;;
         -nD)         REMOVE=0;;
         -F)          FORCE=1;;
+        -colors)     NOCOLORS=0; update_colors;;
+        -nocolors)   NOCOLORS=1; update_colors;;
         -s)          SAVE=1;;
         -h|--help|-help) eval "$msg \"${HELP}\""; exit 0;;
         -*) eval "$msg \"${HELP}\""; emsg "\nUnknown option $1"; exit 1;;
@@ -126,6 +139,18 @@ while [ "$1" ]; do
     esac
     shift
 done
+
+# save configuration if needed
+if [ ${SAVE} -eq 1 ]; then
+    echo "DIR=\"${DIR}\"" > "${CONFIG}"
+    echo "NOSUBDIRS=${NOSUBDIRS}" >> "${CONFIG}"
+    echo "NORENAME=${NORENAME}" >> "${CONFIG}"
+    echo "NOPIC=${NOPIC}" >> "${CONFIG}"
+    echo "REMOVE=${REMOVE}" >> "${CONFIG}"
+    echo "PIC_SIZE=${PIC_SIZE}" >> "${CONFIG}"
+    echo "NOCOLORS=${NOCOLORS}" >> "${CONFIG}"
+    $msg "${cP}Configuration saved$cZ"
+fi
 
 METAFLAC="metaflac --no-utf8-convert"
 VORBISCOMMENT="vorbiscomment -R -a"
@@ -235,17 +260,6 @@ split_file ( ) {
         else
             $msg "$msg_removal if user says 'y'$cZ"
         fi
-    fi
-
-    # save configuration if needed
-    if [ ${SAVE} -eq 1 ]; then
-        echo "DIR=\"${DIR}\"" > "${CONFIG}"
-        echo "NOSUBDIRS=${NOSUBDIRS}" >> "${CONFIG}"
-        echo "NORENAME=${NORENAME}" >> "${CONFIG}"
-        echo "NOPIC=${NOPIC}" >> "${CONFIG}"
-        echo "REMOVE=${REMOVE}" >> "${CONFIG}"
-        echo "PIC_SIZE=${PIC_SIZE}" >> "${CONFIG}"
-        $msg "${cP}Configuration saved$cZ"
     fi
 
     GETTAG="cueprint -n 1 -t"
