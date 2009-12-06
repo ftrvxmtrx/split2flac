@@ -43,10 +43,7 @@ FORMAT="${FORMAT%.sh}"
 eval $(cat "${CONFIG}" 2>/dev/null)
 DRY=0
 SAVE=0
-unset PIC
-unset INPATH
-unset CUE
-unset CHARSET
+unset PIC INPATH CUE CHARSET
 FORCE=0
 
 cR="\033[31m"
@@ -443,8 +440,7 @@ split_file ( ) {
 split_collection ( ) {
     while read -r FILE; do
         $msg "$cG>> $cC\"${FILE}\"$cZ"
-        unset PIC
-        unset CUE
+        unset PIC CUE
         split_file "${FILE}"
 
         if [ ! $? -eq 0 ]; then
