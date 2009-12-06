@@ -183,7 +183,7 @@ split_file ( ) {
             CUE="${FILE%.*}.cue"
             if [ ! -r "${CUE}" ]; then
                 # try to extract internal one
-                CUESHEET=$(${METAFLAC} --show-tag=CUESHEET "${FILE}" 2>/dev/null | sed 's/cuesheet=//;s/CUESHEET=//')
+                CUESHEET=$(${METAFLAC} --show-tag=CUESHEET "${FILE}" 2>/dev/null | sed 's/^cuesheet=//;s/^CUESHEET=//')
 
                 if [ -z "${CUESHEET}" ]; then
                     CUESHEET=$(wvunpack -q -c "${FILE}" 2>/dev/null)
