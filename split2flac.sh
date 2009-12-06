@@ -303,7 +303,9 @@ split_file ( ) {
             DIR_ALBUM="${TAG_DATE} - ${DIR_ALBUM}"
         fi
 
-        mkdir -p "${OUT}/${DIR_ARTIST}"
+        if [ ${DRY} -ne 1 ]; then
+            mkdir -p "${OUT}/${DIR_ARTIST}"
+        fi
         OUT="${OUT}/${DIR_ARTIST}/${DIR_ALBUM}"
     fi
 
