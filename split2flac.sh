@@ -298,6 +298,7 @@ split_file ( ) {
             DIR_ALBUM="${TAG_DATE} - ${DIR_ALBUM}"
         fi
 
+        mkdir -p "${OUT}/${DIR_ARTIST}"
         OUT="${OUT}/${DIR_ARTIST}/${DIR_ALBUM}"
     fi
 
