@@ -23,7 +23,7 @@
 # Dependencies:
 #          shntool, cuetools
 # SPLIT:   flac, wavpack, mac
-# CONVERT: flac, ffmpeg, id3lib, lame, vorbis-tools
+# CONVERT: flac, faac, mpeg4ip, id3lib, lame, vorbis-tools
 # ART:     ImageMagick
 # CHARSET: iconv
 
@@ -155,6 +155,7 @@ fi
 METAFLAC="metaflac --no-utf8-convert"
 VORBISCOMMENT="vorbiscomment -R -a"
 ID3TAG="id3tag -2"
+MP4TAGS="mp4tags"
 GETTAG="cueprint -n 1 -t"
 VALIDATE="sed s/[^-[:space:][:alnum:]&_#,.'\"\(\)!?]//g"
 
@@ -316,7 +317,7 @@ split_file ( ) {
 
         case ${FORMAT} in
             flac) ENC="flac flac -8 - -o %f";;
-            m4a)  ENC="cust ext=m4a ffmpeg -i - -acodec alac %f";;
+            m4a)  ENC="cust ext=m4a faac -q 500 -o %f -";;
             mp3)  ENC="cust ext=mp3 lame --preset extreme - %f";;
             ogg)  ENC="cust ext=ogg oggenc -q 10 - -o %f";;
             *)    emsg "Unknown output format ${FORMAT}"; exit 1;;
@@ -419,8 +420,23 @@ split_file ( ) {
                     ;;
 
                 m4a)
-                    emsg "ALAC tagging is not supported yet, sorry"
-                    RES=0
+                    ${MP4TAGS} "${FINAL}" \
+                        -a "${TAG_ARTIST}" \
+                        -A "${TAG_ALBUM}" \
+                        -s "${TAG_TITLE}" \
+                        -t "$i" \
+                        -T "${TRACKS_NUM}" >/dev/null
+                    RES=$?
+
+                    if [ -n "${TAG_DATE}" ]; then
+                        ${MP4TAGS} "${FINAL}" -y "${TAG_DATE}" >/dev/null
+                        RES=$RES$?
+                    fi
+
+                    if [ -n "${PIC}" ]; then
+                        ${MP4TAGS} "${FINAL}" -P "${PIC}" >/dev/null
+                        RES=$RES$?
+                    fi
                     ;;
 
                 *)
