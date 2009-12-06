@@ -380,12 +380,12 @@ split_file ( ) {
 
                     if [ -n "${TAG_DATE}" ]; then
                         ${METAFLAC} --set-tag="DATE=${TAG_DATE}" "${FINAL}" >/dev/null
-                        RES=$((${RES} + $?))
+                        RES=$RES$?
                     fi
 
                     if [ -n "${PIC}" ]; then
                         ${METAFLAC} --import-picture-from="${PIC}" "${FINAL}" >/dev/null
-                        RES=$((${RES} + $?))
+                        RES=$RES$?
                     fi
                     ;;
 
@@ -400,7 +400,7 @@ split_file ( ) {
 
                     if [ -n "${TAG_DATE}" ]; then
                         ${ID3TAG} -y"${TAG_DATE}" "${FINAL}" >/dev/null
-                        RES=$((${RES} + $?))
+                        RES=$RES$?
                     fi
                     ;;
 
@@ -414,7 +414,7 @@ split_file ( ) {
 
                     if [ -n "${TAG_DATE}" ]; then
                         ${VORBISCOMMENT} "${FINAL}" -t "DATE=${TAG_DATE}" >/dev/null
-                        RES=$((${RES} + $?))
+                        RES=$RES$?
                     fi
                     ;;
 
