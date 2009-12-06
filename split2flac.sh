@@ -156,7 +156,7 @@ METAFLAC="metaflac --no-utf8-convert"
 VORBISCOMMENT="vorbiscomment -R -a"
 ID3TAG="id3tag -2"
 GETTAG="cueprint -n 1 -t"
-VALIDATE="sed s/[^-[:space:][:alnum:]&_#,.'\"]//g"
+VALIDATE="sed s/[^-[:space:][:alnum:]&_#,.'\"\(\)!?]//g"
 
 # check & print output format
 msg_format="${cG}Output format :$cZ"
