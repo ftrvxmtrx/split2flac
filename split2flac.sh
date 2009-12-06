@@ -39,6 +39,7 @@ NOCOLORS=0
 PIC_SIZE="192x192"
 FORMAT="${0##*split2}"
 FORMAT="${FORMAT%.sh}"
+DIR="."
 
 # load settings
 eval $(cat "${CONFIG}" 2>/dev/null)
@@ -52,7 +53,7 @@ HELP="\${cG}split2flac splits one big \${cU}APE/FLAC/WV\$cZ\$cG file to \${cU}FL
 Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIONS\$cZ]\$cZ
        \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}DIR\$cZ  [\${cU}OPTIONS\$cZ]\$cZ
          \$cG-p\$cZ                    - dry run
-         \$cG-o \${cU}DIRECTORY\$cZ        \$cR*\$cZ - set output directory
+         \$cG-o \${cU}DIRECTORY\$cZ        \$cR*\$cZ - set output directory (current is \$cP\${DIR}\$cZ)
          \$cG-cue \${cU}FILE\$cZ             - use file as a cue sheet (does not work with \${cU}DIR\$cZ)
          \$cG-cuecharset \${cU}CHARSET\$cZ   - convert cue sheet from CHARSET to UTF-8 (no conversion by default)
          \$cG-f \${cU}FORMAT\$cZ             - use specified output format \$cP(current is \${FORMAT})\$cZ
