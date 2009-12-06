@@ -23,7 +23,7 @@
 # Dependencies:
 #          shntool, cuetools
 # SPLIT:   flac, wavpack, mac
-# CONVERT: flac, faac, mpeg4ip, id3lib, lame, vorbis-tools
+# CONVERT: flac, faac, libmp4v2, id3lib, lame, vorbis-tools
 # ART:     ImageMagick
 # CHARSET: iconv
 
