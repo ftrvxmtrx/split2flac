@@ -79,8 +79,8 @@ Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIO
 It's better to pass \$cP'-p'\$cZ option to see what will happen when actually splitting tracks.
 You may want to pass \$cP'-s'\$cZ option for the first run to save default configuration
 (output dir, cover image size, etc.) so you won't need to pass a lot of options
-every time, just a filename.
-Script will try to find CUE sheet if it wasn't specified. It also supports internal CUE sheets."
+every time, just a filename. Script will try to find CUE sheet if it wasn't specified.
+It also supports internal CUE sheets (FLAC and WV)."
 
 msg="echo -e"
 
@@ -127,7 +127,7 @@ while [ "$1" ]; do
         -h|--help|-help) eval "$msg \"${HELP}\""; exit 0;;
         -*) eval "$msg \"${HELP}\""; emsg "\nUnknown option $1"; exit 1;;
         *)
-            if [ -n "${INPATH}" ]; then
+            if [ "${INPATH}" ]; then
                 eval "$msg \"${HELP}\""
                 emsg "\nUnknown option $1"
                 exit 1
@@ -193,6 +193,7 @@ split_file ( ) {
                 fi
 
                 if [ "${CUESHEET}" ]; then
+                    $msg "${cP}Found internal cue sheet$cZ"
                     CUE="${TMPCUE}"
                     echo "${CUESHEET}" > "${CUE}"
 
@@ -213,7 +214,7 @@ split_file ( ) {
         return 1
     fi
 
-    if [ -n "${CHARSET}" ]; then
+    if [ "${CHARSET}" ]; then
         $msg "${cG}Cue charset : $cP${CHARSET} -> utf-8$cZ"
         CUESHEET=$(iconv -f "${CHARSET}" -t utf-8 "${CUE}" 2>/dev/null)
         if [ $? -ne 0 ]; then
@@ -254,6 +255,7 @@ split_file ( ) {
         fi
     fi
 
+    $msg "${cG}Cue sheet     :$cZ ${CUE}"
     $msg "${cG}Cover image   :$cZ ${PIC:-not set}"
     $msg "${cG}Output dir    :$cZ ${DIR:?Output directory was not set}"
 
@@ -277,7 +279,7 @@ split_file ( ) {
 
     unset TAG_DATE
 
-    if [ -n "${YEAR}" ]; then
+    if [ "${YEAR}" ]; then
         if [ ${YEAR} -ne 0 ]; then
             TAG_DATE="${YEAR}"
         fi
@@ -285,7 +287,7 @@ split_file ( ) {
 
     $msg "\n${cG}Artist :$cZ ${TAG_ARTIST}"
     $msg "${cG}Album  :$cZ ${TAG_ALBUM}"
-    if [ -n "${TAG_DATE}" ]; then
+    if [ "${TAG_DATE}" ]; then
         $msg "${cG}Year   :$cZ ${TAG_DATE}"
     fi
     $msg "${cG}Tracks :$cZ ${TRACKS_NUM}\n"
@@ -380,12 +382,12 @@ split_file ( ) {
                         "${FINAL}" >/dev/null
                     RES=$?
 
-                    if [ -n "${TAG_DATE}" ]; then
+                    if [ "${TAG_DATE}" ]; then
                         ${METAFLAC} --set-tag="DATE=${TAG_DATE}" "${FINAL}" >/dev/null
                         RES=$RES$?
                     fi
 
-                    if [ -n "${PIC}" ]; then
+                    if [ "${PIC}" ]; then
                         ${METAFLAC} --import-picture-from="${PIC}" "${FINAL}" >/dev/null
                         RES=$RES$?
                     fi
@@ -400,7 +402,7 @@ split_file ( ) {
                         "${FINAL}" >/dev/null
                     RES=$?
 
-                    if [ -n "${TAG_DATE}" ]; then
+                    if [ "${TAG_DATE}" ]; then
                         ${ID3TAG} -y"${TAG_DATE}" "${FINAL}" >/dev/null
                         RES=$RES$?
                     fi
@@ -414,7 +416,7 @@ split_file ( ) {
                         -t "TRACKNUMBER=$i" >/dev/null
                     RES=$?
 
-                    if [ -n "${TAG_DATE}" ]; then
+                    if [ "${TAG_DATE}" ]; then
                         ${VORBISCOMMENT} "${FINAL}" -t "DATE=${TAG_DATE}" >/dev/null
                         RES=$RES$?
                     fi
@@ -429,12 +431,12 @@ split_file ( ) {
                         -T "${TRACKS_NUM}" >/dev/null
                     RES=$?
 
-                    if [ -n "${TAG_DATE}" ]; then
+                    if [ "${TAG_DATE}" ]; then
                         ${MP4TAGS} "${FINAL}" -y "${TAG_DATE}" >/dev/null
                         RES=$RES$?
                     fi
 
-                    if [ -n "${PIC}" ]; then
+                    if [ "${PIC}" ]; then
                         ${MP4TAGS} "${FINAL}" -P "${PIC}" >/dev/null
                         RES=$RES$?
                     fi
@@ -502,7 +504,7 @@ if [ -d "${INPATH}" ]; then
     fi
     $msg "${cG}Input dir     :$cZ ${INPATH}$cZ"
     split_dir "${INPATH}"
-elif [ -n "${INPATH}" ]; then
+elif [ "${INPATH}" ]; then
     split_file "${INPATH}"
 else
     emsg "No input filename given. Use -h for help."
