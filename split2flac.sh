@@ -23,7 +23,7 @@
 # Dependencies:
 #          shntool, cuetools
 # SPLIT:   flac, wavpack, mac
-# CONVERT: flac, id3lib, lame, vorbis-tools
+# CONVERT: flac, ffmpeg, id3lib, lame, vorbis-tools
 # ART:     ImageMagick
 # CHARSET: iconv
 
@@ -47,7 +47,7 @@ SAVE=0
 unset PIC INPATH CUE CHARSET
 FORCE=0
 
-HELP="\${cG}split2flac splits one big \${cU}APE/FLAC/WV\$cZ\$cG file to \${cU}FLAC/MP3/OGG_VORBIS\$cZ\$cG tracks with tagging and renaming.
+HELP="\${cG}split2flac splits one big \${cU}APE/FLAC/WV\$cZ\$cG file to \${cU}FLAC/ALAC/MP3/OGG_VORBIS\$cZ\$cG tracks with tagging and renaming.
 
 Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIONS\$cZ]\$cZ
        \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}DIR\$cZ  [\${cU}OPTIONS\$cZ]\$cZ
@@ -73,7 +73,7 @@ Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIO
 
 \$cR*\$cZ - option affects configuration if \$cP'-s'\$cZ option passed.
 \${cP}NOTE: \$cG'-c some_file.jpg -s'$cP only \${cU}allows\$cZ\$cP cover images, it doesn't set a default one.
-\${cZ}Supported \$cU\${cG}FORMATs\${cZ}: flac, mp3, ogg vorbis.
+\${cZ}Supported \$cU\${cG}FORMATs\${cZ}: flac, alac, mp3, ogg.
 
 It's better to pass \$cP'-p'\$cZ option to see what will happen when actually splitting tracks.
 You may want to pass \$cP'-s'\$cZ option for the first run to save default configuration
@@ -162,6 +162,7 @@ VALIDATE="sed s/[^-[:space:][:alnum:]&_#,.'\"\(\)!?]//g"
 msg_format="${cG}Output format :$cZ"
 case ${FORMAT} in
     flac) $msg "$msg_format FLAC";;
+    alac) $msg "$msg_format ALAC"; FORMAT=m4a;;
     mp3)  $msg "$msg_format MP3";;
     ogg)  $msg "$msg_format OGG VORBIS";;
     *)    emsg "Unknown output format \"${FORMAT}\""; exit 1;;
@@ -315,6 +316,7 @@ split_file ( ) {
 
         case ${FORMAT} in
             flac) ENC="flac flac -8 - -o %f";;
+            m4a)  ENC="cust ext=m4a ffmpeg -i - -acodec alac %f";;
             mp3)  ENC="cust ext=mp3 lame --preset extreme - %f";;
             ogg)  ENC="cust ext=ogg oggenc -q 10 - -o %f";;
             *)    emsg "Unknown output format ${FORMAT}"; exit 1;;
@@ -415,6 +417,12 @@ split_file ( ) {
                         RES=$((${RES} + $?))
                     fi
                     ;;
+
+                m4a)
+                    emsg "ALAC tagging is not supported yet, sorry"
+                    RES=0
+                    ;;
+
                 *)
                     emsg "Unknown output format ${FORMAT}"
                     return 1
