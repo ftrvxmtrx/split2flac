@@ -170,6 +170,8 @@ case ${FORMAT} in
     *)    emsg "Unknown output format \"${FORMAT}\""; exit 1;;
 esac
 
+$msg "${cG}Output dir    :$cZ ${DIR:?Output directory was not set}"
+
 # splits a file
 split_file ( ) {
     FILE="$1"
@@ -257,7 +259,6 @@ split_file ( ) {
 
     $msg "${cG}Cue sheet     :$cZ ${CUE}"
     $msg "${cG}Cover image   :$cZ ${PIC:-not set}"
-    $msg "${cG}Output dir    :$cZ ${DIR:?Output directory was not set}"
 
     # file removal warning
     if [ ${REMOVE} -eq 1 ]; then
@@ -504,7 +505,7 @@ if [ -d "${INPATH}" ]; then
         emsg "Directory \"${INPATH}\" is not accessible"
         exit 1
     fi
-    $msg "${cG}Input dir     :$cZ ${INPATH}$cZ"
+    $msg "${cG}Input dir     :$cZ ${INPATH}$cZ\n"
     split_dir "${INPATH}"
 elif [ "${INPATH}" ]; then
     split_file "${INPATH}"
