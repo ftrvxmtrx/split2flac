@@ -80,15 +80,15 @@ It's better to pass \$cP'-p'\$cZ option to see what will happen when actually sp
 You may want to pass \$cP'-s'\$cZ option for the first run to save default configuration
 (output dir, cover image size, etc.) so you won't need to pass a lot of options
 every time, just a filename. Script will try to find CUE sheet if it wasn't specified.
-It also supports internal CUE sheets (FLAC and WV)."
+It also supports internal CUE sheets (FLAC, APE and WV)."
 
 msg="echo -e"
 
-emsg ( ) {
+emsg () {
     $msg "${cR}$1${cZ}"
 }
 
-update_colors ( ) {
+update_colors () {
     if [ "${NOCOLORS}" -eq 0 ]; then
         cR="\033[31m"
         cG="\033[32m"
@@ -173,7 +173,7 @@ esac
 $msg "${cG}Output dir    :$cZ ${DIR:?Output directory was not set}"
 
 # splits a file
-split_file ( ) {
+split_file () {
     FILE="$1"
 
     if [ ! -r "${FILE}" ]; then
@@ -190,8 +190,24 @@ split_file ( ) {
                 # try to extract internal one
                 CUESHEET=$(${METAFLAC} --show-tag=CUESHEET "${FILE}" 2>/dev/null | sed 's/^cuesheet=//;s/^CUESHEET=//')
 
+                # try WV internal cue sheet
                 if [ -z "${CUESHEET}" ]; then
                     CUESHEET=$(wvunpack -q -c "${FILE}" 2>/dev/null)
+                fi
+
+                # try APE internal cue sheet (omfg!)
+                if [ -z "${CHESHEET}" ]; then
+                    APETAGEX=$(tail -c 32 "$1" | cut -b 1-8 2>/dev/null)
+                    if [ "${APETAGEX}" = "APETAGEX" ]; then
+                        LENGTH=$(tail -c 32 "$1" | cut -b 13-16 | od -t u4 | awk '{printf $2}') 2>/dev/null
+                        tail -c ${LENGTH} "$1" | grep -a CUESHEET >/dev/null 2>&1
+                        if [ $? -eq 0 ]; then
+                            CUESHEET=$(tail -c ${LENGTH} "$1" | sed 's/.*CUESHEET.//g' 2>/dev/null)
+                            if [ $? -ne 0 ]; then
+                                CUESHEET=""
+                            fi
+                        fi
+                    fi
                 fi
 
                 if [ "${CUESHEET}" ]; then
@@ -218,7 +234,7 @@ split_file ( ) {
 
     if [ "${CHARSET}" ]; then
         $msg "${cG}Cue charset : $cP${CHARSET} -> utf-8$cZ"
-        CUESHEET=$(iconv -f "${CHARSET}" -t utf-8 "${CUE}" 2>/dev/null)
+        CUESHEET=$(iconv -c -f "${CHARSET}" -t utf-8 "${CUE}" 2>/dev/null)
         if [ $? -ne 0 ]; then
             emsg "Unable to convert cue sheet from ${CHARSET} to utf-8"
             return 1
@@ -271,9 +287,9 @@ split_file ( ) {
     fi
 
     # get common tags
-    TAG_ARTIST=$(${GETTAG} %P "${CUE}")
-    TAG_ALBUM=$(${GETTAG} %T "${CUE}")
-    TRACKS_NUM=$(${GETTAG} %N "${CUE}")
+    TAG_ARTIST=$(${GETTAG} %P "${CUE}" 2>/dev/null)
+    TAG_ALBUM=$(${GETTAG} %T "${CUE}" 2>/dev/null)
+    TRACKS_NUM=$(${GETTAG} %N "${CUE}" 2>/dev/null)
 
     YEAR=$(awk '{ if (/REM[ \t]+DATE/) { printf "%i", $3; exit } }' < "${CUE}")
     YEAR=$(echo ${YEAR} | tr -d -C '[:digit:]')
@@ -322,7 +338,7 @@ split_file ( ) {
         fi
 
         case ${FORMAT} in
-            flac) ENC="flac flac -8 - -o %f";;
+            flac) ENC="flac flac -0 - -o %f";;
             m4a)  ENC="cust ext=m4a faac -q 500 -o %f -";;
             mp3)  ENC="cust ext=mp3 lame --preset extreme - %f";;
             ogg)  ENC="cust ext=ogg oggenc -q 10 - -o %f";;
@@ -330,7 +346,7 @@ split_file ( ) {
         esac
 
         # split to tracks
-        cuebreakpoints "${CUE}" | \
+        cuebreakpoints "${CUE}" 2>/dev/null | \
             shnsplit -O never -o "${ENC}" -d "${OUT}" -t "%n" "${FILE}"
         if [ $? -ne 0 ]; then
             emsg "Failed to split"
@@ -354,7 +370,7 @@ split_file ( ) {
 
     i=1
     while [ $i -le ${TRACKS_NUM} ]; do
-        TAG_TITLE=$(cueprint -n $i -t %t "${CUE}")
+        TAG_TITLE=$(cueprint -n $i -t %t "${CUE}" 2>/dev/null)
         FILE_TRACK="$(printf %02i $i)"
         FILE_TITLE=$(echo ${TAG_TITLE} | ${VALIDATE})
         f="${OUT}/${FILE_TRACK}.${FORMAT}"
@@ -481,7 +497,7 @@ split_file ( ) {
     return 0
 }
 
-split_collection ( ) {
+split_collection () {
     while read -r FILE; do
         $msg "$cG>> $cC\"${FILE}\"$cZ"
         unset PIC CUE
@@ -496,7 +512,7 @@ split_collection ( ) {
 }
 
 # searches for files in a directory and splits them
-split_dir ( ) {
+split_dir () {
     find "$1" -name '*.flac' -o -name '*.ape' -o -name '*.wv' | split_collection
 }
 
