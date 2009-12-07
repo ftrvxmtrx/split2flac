@@ -338,7 +338,7 @@ split_file () {
         fi
 
         case ${FORMAT} in
-            flac) ENC="flac flac -0 - -o %f";;
+            flac) ENC="flac flac -8 - -o %f";;
             m4a)  ENC="cust ext=m4a faac -q 500 -o %f -";;
             mp3)  ENC="cust ext=mp3 lame --preset extreme - %f";;
             ogg)  ENC="cust ext=ogg oggenc -q 10 - -o %f";;
