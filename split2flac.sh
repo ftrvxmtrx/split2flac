@@ -30,6 +30,7 @@
 CONFIG="${HOME}/.split2flac"
 TMPCUE="${HOME}/.split2flac_sheet.cue"
 TMPPIC="${HOME}/.split2flac_cover.jpg"
+FAILED="split_failed.txt"
 
 NOSUBDIRS=0
 NORENAME=0
@@ -498,6 +499,7 @@ split_file () {
 }
 
 split_collection () {
+    NUM_FAILED=0
     while read -r FILE; do
         $msg "$cG>> $cC\"${FILE}\"$cZ"
         unset PIC CUE
@@ -505,15 +507,28 @@ split_collection () {
 
         if [ ! $? -eq 0 ]; then
             emsg "Failed to split \"${FILE}\""
+            echo "${FILE}" >> "${FAILED}"
+            NUM_FAILED=$((${NUM_FAILED} + 1))
         fi
 
         echo
     done
+
+    return ${NUM_FAILED}
 }
 
 # searches for files in a directory and splits them
 split_dir () {
+    rm -f "${FAILED}"
     find "$1" -name '*.flac' -o -name '*.ape' -o -name '*.wv' | split_collection
+    NUM_FAILED=$?
+    if [ ${NUM_FAILED} -ne 0 ]; then
+        emsg "${NUM_FAILED} file(s) failed to split (already splited?):"
+        $msg "${cR}"
+        sort "${FAILED}" -o "${FAILED}"
+        cat "${FAILED}"
+        emsg "\nThese files are also listed in ${FAILED}."
+    fi
 }
 
 if [ -d "${INPATH}" ]; then
