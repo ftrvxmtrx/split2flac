@@ -500,6 +500,7 @@ split_file () {
 
 split_collection () {
     NUM_FAILED=0
+
     while read -r FILE; do
         $msg "$cG>> $cC\"${FILE}\"$cZ"
         unset PIC CUE
@@ -522,6 +523,7 @@ split_dir () {
     rm -f "${FAILED}"
     find "$1" -name '*.flac' -o -name '*.ape' -o -name '*.wv' | split_collection
     NUM_FAILED=$?
+
     if [ ${NUM_FAILED} -ne 0 ]; then
         emsg "${NUM_FAILED} file(s) failed to split (already splited?):"
         $msg "${cR}"
