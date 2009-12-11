@@ -49,7 +49,10 @@ SAVE=0
 unset PIC INPATH CUE CHARSET
 FORCE=0
 
-HELP="\${cG}split2flac splits one big \${cU}APE/FLAC/WV\$cZ\$cG file to \${cU}FLAC/M4A/MP3/OGG_VORBIS\$cZ\$cG tracks with tagging and renaming.
+VERSION=unknown
+
+HELP="\${cG}split2flac version: ${VERSION}
+Splits one big \${cU}APE/FLAC/WV\$cZ\$cG file to \${cU}FLAC/M4A/MP3/OGG_VORBIS\$cZ\$cG tracks with tagging and renaming.
 
 Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIONS\$cZ]\$cZ
        \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}DIR\$cZ  [\${cU}OPTIONS\$cZ]\$cZ
@@ -72,6 +75,7 @@ Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIO
          \$cG-nocolors\$cZ           \$cR*\$cZ - turn off colors
          \$cG-s\$cZ                    - save configuration to \$cP\"\${CONFIG}\"\$cZ
          \$cG-h\$cZ                    - print this message
+         \$cG-v\$cZ                    - print version
 
 \$cR*\$cZ - option affects configuration if \$cP'-s'\$cZ option passed.
 \${cP}NOTE: \$cG'-c some_file.jpg -s'$cP only \${cU}allows\$cZ\$cP cover images, it doesn't set a default one.
@@ -126,6 +130,7 @@ while [ "$1" ]; do
         -nocolors)   NOCOLORS=1; update_colors;;
         -s)          SAVE=1;;
         -h|--help|-help) eval "$msg \"${HELP}\""; exit 0;;
+        -v|--version)    $msg "split2${FORMAT} version: ${VERSION}"; exit 0;;
         -*) eval "$msg \"${HELP}\""; emsg "\nUnknown option $1"; exit 1;;
         *)
             if [ "${INPATH}" ]; then
