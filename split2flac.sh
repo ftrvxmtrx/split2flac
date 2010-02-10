@@ -526,7 +526,7 @@ split_collection () {
 # searches for files in a directory and splits them
 split_dir () {
     rm -f "${FAILED}"
-    find "$1" -name '*.flac' -o -name '*.ape' -o -name '*.wv' | split_collection
+    find "$1" -iname '*.flac' -o -iname '*.ape' -o -iname '*.wv' | split_collection
     NUM_FAILED=$?
 
     if [ ${NUM_FAILED} -ne 0 ]; then
