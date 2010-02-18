@@ -84,7 +84,7 @@ Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIO
          \$cG-v\$cZ                    - print version
 
 \$cR*\$cZ - option affects configuration if \$cP'-s'\$cZ option passed.
-\${cP}NOTE: \$cG'-c some_file.jpg -s'$cP only \${cU}allows\$cZ\$cP cover images, it doesn't set a default one.
+\${cP}NOTE: \$cG'-c some_file.jpg -s'\$cP only \${cU}allows\$cZ\$cP cover images, it doesn't set a default one.
 \${cZ}Supported \$cU\${cG}FORMATs\${cZ}: flac, m4a, mp3, ogg.
 
 It's better to pass \$cP'-p'\$cZ option to see what will happen when actually splitting tracks.
