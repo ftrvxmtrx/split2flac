@@ -27,6 +27,12 @@
 # ART:     ImageMagick
 # CHARSET: iconv
 
+# Return codes:
+# 0 - success
+# 1 - error in arguments
+# 2 - file or path is not accessible
+# 3 - something has failed
+
 CONFIG="${HOME}/.split2flac"
 TMPCUE="${HOME}/.split2flac_sheet.cue"
 TMPPIC="${HOME}/.split2flac_cover.jpg"
@@ -139,7 +145,7 @@ while [ "$1" ]; do
                 exit 1
             elif [ ! -r "$1" ]; then
                 emsg "Unable to read $1"
-                exit 1
+                exit 2
             else
                 INPATH="$1"
             fi;;
@@ -520,28 +526,28 @@ split_collection () {
         echo
     done
 
-    return ${NUM_FAILED}
-}
-
-# searches for files in a directory and splits them
-split_dir () {
-    rm -f "${FAILED}"
-    find "$1" -iname '*.flac' -o -iname '*.ape' -o -iname '*.wv' | split_collection
-    NUM_FAILED=$?
-
     if [ ${NUM_FAILED} -ne 0 ]; then
         emsg "${NUM_FAILED} file(s) failed to split (already splited?):"
         $msg "${cR}"
         sort "${FAILED}" -o "${FAILED}"
         cat "${FAILED}"
         emsg "\nThese files are also listed in ${FAILED}."
+        return 1
     fi
+
+    return 0
+}
+
+# searches for files in a directory and splits them
+split_dir () {
+    rm -f "${FAILED}"
+    find "$1" -iname '*.flac' -o -iname '*.ape' -o -iname '*.wv' | split_collection
 }
 
 if [ -d "${INPATH}" ]; then
     if [ ! -x "${INPATH}" ]; then
         emsg "Directory \"${INPATH}\" is not accessible"
-        exit 1
+        exit 2
     fi
     $msg "${cG}Input dir     :$cZ ${INPATH}$cZ\n"
     split_dir "${INPATH}"
@@ -552,4 +558,11 @@ else
     exit 1
 fi
 
+# return code of split_dir or split_file
+STATUS=$?
+
 $msg "\n${cP}Finished$cZ"
+
+if [ ${STATUS} -ne 0 ]; then
+    exit 3
+fi
