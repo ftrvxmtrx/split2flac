@@ -27,7 +27,7 @@
 # ART:     ImageMagick
 # CHARSET: iconv
 
-# Return codes:
+# Exit codes:
 # 0 - success
 # 1 - error in arguments
 # 2 - file or path is not accessible
@@ -558,7 +558,7 @@ else
     exit 1
 fi
 
-# return code of split_dir or split_file
+# exit code of split_dir or split_file
 STATUS=$?
 
 $msg "\n${cP}Finished$cZ"
