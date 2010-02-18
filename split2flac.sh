@@ -208,7 +208,7 @@ split_file () {
                 fi
 
                 # try APE internal cue sheet (omfg!)
-                if [ -z "${CHESHEET}" ]; then
+                if [ -z "${CUESHEET}" ]; then
                     APETAGEX=$(tail -c 32 "$1" | cut -b 1-8 2>/dev/null)
                     if [ "${APETAGEX}" = "APETAGEX" ]; then
                         LENGTH=$(tail -c 32 "$1" | cut -b 13-16 | od -t u4 | awk '{printf $2}') 2>/dev/null
