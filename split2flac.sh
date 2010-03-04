@@ -303,6 +303,8 @@ split_file () {
     TAG_ALBUM=$(${GETTAG} %T "${CUE}" 2>/dev/null)
     TRACKS_NUM=$(${GETTAG} %N "${CUE}" 2>/dev/null)
 
+    TAG_GENRE=$(awk '{ if (/REM[ \t]+GENRE/) { print $3; exit } }' < "${CUE}")
+
     YEAR=$(awk '{ if (/REM[ \t]+DATE/) { printf "%i", $3; exit } }' < "${CUE}")
     YEAR=$(echo ${YEAR} | tr -d -C '[:digit:]')
 
@@ -316,6 +318,9 @@ split_file () {
 
     $msg "\n${cG}Artist :$cZ ${TAG_ARTIST}"
     $msg "${cG}Album  :$cZ ${TAG_ALBUM}"
+    if [ "${TAG_GENRE}" ]; then
+        $msg "${cG}Genre  :$cZ ${TAG_GENRE}"
+    fi
     if [ "${TAG_DATE}" ]; then
         $msg "${cG}Year   :$cZ ${TAG_DATE}"
     fi
@@ -413,6 +418,11 @@ split_file () {
                         "${FINAL}" >/dev/null
                     RES=$?
 
+                    if [ "${TAG_GENRE}" ]; then
+                        ${METAFLAC} --set-tag="GENRE=${TAG_GENRE}" "${FINAL}" >/dev/null
+                        RES=$RES$?
+                    fi
+
                     if [ "${TAG_DATE}" ]; then
                         ${METAFLAC} --set-tag="DATE=${TAG_DATE}" "${FINAL}" >/dev/null
                         RES=$RES$?
@@ -433,6 +443,11 @@ split_file () {
                         "${FINAL}" >/dev/null
                     RES=$?
 
+                    if [ "${TAG_GENRE}" ]; then
+                        ${ID3TAG} -g"${TAG_GENRE}" "${FINAL}" >/dev/null
+                        RES=$RES$?
+                    fi
+
                     if [ "${TAG_DATE}" ]; then
                         ${ID3TAG} -y"${TAG_DATE}" "${FINAL}" >/dev/null
                         RES=$RES$?
@@ -446,6 +461,11 @@ split_file () {
                         -t "TITLE=${TAG_TITLE}" \
                         -t "TRACKNUMBER=$i" >/dev/null
                     RES=$?
+
+                    if [ "${TAG_GENRE}" ]; then
+                        ${VORBISCOMMENT} "${FINAL}" -t "GENRE=${TAG_GENRE}" >/dev/null
+                        RES=$RES$?
+                    fi
 
                     if [ "${TAG_DATE}" ]; then
                         ${VORBISCOMMENT} "${FINAL}" -t "DATE=${TAG_DATE}" >/dev/null
@@ -461,6 +481,11 @@ split_file () {
                         -t "$i" \
                         -T "${TRACKS_NUM}" >/dev/null
                     RES=$?
+
+                    if [ "${TAG_GENRE}" ]; then
+                        ${MP4TAGS} "${FINAL}" -g "${TAG_GENRE}" >/dev/null
+                        RES=$RES$?
+                    fi
 
                     if [ "${TAG_DATE}" ]; then
                         ${MP4TAGS} "${FINAL}" -y "${TAG_DATE}" >/dev/null
