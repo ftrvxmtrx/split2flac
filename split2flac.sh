@@ -303,7 +303,8 @@ split_file () {
     TAG_ALBUM=$(${GETTAG} %T "${CUE}" 2>/dev/null)
     TRACKS_NUM=$(${GETTAG} %N "${CUE}" 2>/dev/null)
 
-    TAG_GENRE=$(awk '{ if (/REM[ \t]+GENRE/) { print $3; exit } }' < "${CUE}")
+    TAG_GENRE=$(awk '{ if (/REM[ \t]+GENRE[ \t]+(.*)/) { print $0; exit } }' < "${CUE}")
+    TAG_GENRE=$(echo ${TAG_GENRE} | sed 's/REM[ \t]\+GENRE[ \t]\+//;s/"\(.*\)"/\1/')
 
     YEAR=$(awk '{ if (/REM[ \t]+DATE/) { printf "%i", $3; exit } }' < "${CUE}")
     YEAR=$(echo ${YEAR} | tr -d -C '[:digit:]')
