@@ -58,7 +58,7 @@ FORCE=0
 VERSION=unknown
 
 HELP="\${cG}split2flac version: ${VERSION}
-Splits one big \${cU}APE/FLAC/WV\$cZ\$cG file to \${cU}FLAC/M4A/MP3/OGG_VORBIS\$cZ\$cG tracks with tagging and renaming.
+Splits one big \${cU}APE/FLAC/WV\$cZ\$cG file to \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
 
 Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIONS\$cZ]\$cZ
        \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}DIR\$cZ  [\${cU}OPTIONS\$cZ]\$cZ
@@ -85,7 +85,7 @@ Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIO
 
 \$cR*\$cZ - option affects configuration if \$cP'-s'\$cZ option passed.
 \${cP}NOTE: \$cG'-c some_file.jpg -s'\$cP only \${cU}allows\$cZ\$cP cover images, it doesn't set a default one.
-\${cZ}Supported \$cU\${cG}FORMATs\${cZ}: flac, m4a, mp3, ogg.
+\${cZ}Supported \$cU\${cG}FORMATs\${cZ}: flac, m4a, mp3, ogg, wav.
 
 It's better to pass \$cP'-p'\$cZ option to see what will happen when actually splitting tracks.
 You may want to pass \$cP'-s'\$cZ option for the first run to save default configuration
@@ -179,6 +179,7 @@ case ${FORMAT} in
     m4a)  $msg "$msg_format M4A";;
     mp3)  $msg "$msg_format MP3";;
     ogg)  $msg "$msg_format OGG VORBIS";;
+    wav)  $msg "$msg_format WAVE";;
     *)    emsg "Unknown output format \"${FORMAT}\""; exit 1;;
 esac
 
@@ -360,6 +361,7 @@ split_file () {
             m4a)  ENC="cust ext=m4a faac -q 500 -o %f -";;
             mp3)  ENC="cust ext=mp3 lame --preset extreme - %f";;
             ogg)  ENC="cust ext=ogg oggenc -q 10 - -o %f";;
+            wav)  ENC="wav";;
             *)    emsg "Unknown output format ${FORMAT}"; exit 1;;
         esac
 
@@ -497,6 +499,10 @@ split_file () {
                         ${MP4TAGS} "${FINAL}" -P "${PIC}" >/dev/null
                         RES=$RES$?
                     fi
+                    ;;
+
+                wav)
+                    RES=0
                     ;;
 
                 *)
