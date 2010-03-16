@@ -58,7 +58,7 @@ FORCE=0
 VERSION=unknown
 
 HELP="\${cG}split2flac version: ${VERSION}
-Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image to \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
+Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
 
 Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIONS\$cZ]\$cZ
        \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}DIR\$cZ  [\${cU}OPTIONS\$cZ]\$cZ
