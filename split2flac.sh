@@ -308,7 +308,7 @@ split_file () {
     TAG_GENRE=$(echo ${TAG_GENRE} | sed 's/REM[ \t]\+GENRE[ \t]\+//;s/"\(.*\)"/\1/')
 
     YEAR=$(awk '{ if (/REM[ \t]+DATE/) { printf "%i", $3; exit } }' < "${CUE}")
-    YEAR=$(echo ${YEAR} | tr -d -C '[:digit:]')
+    YEAR=$(echo ${YEAR} | tr -d -c '[:digit:]')
 
     unset TAG_DATE
 
