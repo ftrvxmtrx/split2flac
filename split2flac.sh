@@ -96,73 +96,73 @@ It also supports internal CUE sheets (FLAC, APE and WV)."
 msg="echo -e"
 
 emsg () {
-    $msg "${cR}$1${cZ}"
+	$msg "${cR}$1${cZ}"
 }
 
 update_colors () {
-    if [ "${NOCOLORS}" -eq 0 ]; then
-        cR="\033[31m"
-        cG="\033[32m"
-        cC="\033[35m"
-        cP="\033[36m"
-        cU="\033[4m"
-        cZ="\033[0m"
-    else
-        unset cR cG cC cP cU cZ
-    fi
+	if [ "${NOCOLORS}" -eq 0 ]; then
+		cR="\033[31m"
+		cG="\033[32m"
+		cC="\033[35m"
+		cP="\033[36m"
+		cU="\033[4m"
+		cZ="\033[0m"
+	else
+		unset cR cG cC cP cU cZ
+	fi
 }
 
 update_colors
 
 # parse arguments
 while [ "$1" ]; do
-    case "$1" in
-        -o)          DIR=$2; shift;;
-        -cue)        CUE=$2; shift;;
-        -cuecharset) CHARSET=$2; shift;;
-        -f)          FORMAT=$2; shift;;
-        -c)          NOPIC=0; PIC=$2; shift;;
-        -nc)         NOPIC=1;;
-        -cs)         PIC_SIZE=$2; shift;;
-        -d)          NOSUBDIRS=0;;
-        -nd)         NOSUBDIRS=1;;
-        -r)          NORENAME=0;;
-        -nr)         NORENAME=1;;
-        -p)          DRY=1;;
-        -D)          REMOVE=1;;
-        -nD)         REMOVE=0;;
-        -F)          FORCE=1;;
-        -colors)     NOCOLORS=0; update_colors;;
-        -nocolors)   NOCOLORS=1; update_colors;;
-        -s)          SAVE=1;;
-        -h|--help|-help) eval "$msg \"${HELP}\""; exit 0;;
-        -v|--version)    $msg "split2${FORMAT} version: ${VERSION}"; exit 0;;
-        -*) eval "$msg \"${HELP}\""; emsg "\nUnknown option $1"; exit 1;;
-        *)
-            if [ "${INPATH}" ]; then
-                eval "$msg \"${HELP}\""
-                emsg "\nUnknown option $1"
-                exit 1
-            elif [ ! -r "$1" ]; then
-                emsg "Unable to read $1"
-                exit 2
-            else
-                INPATH="$1"
-            fi;;
-    esac
-    shift
+	case "$1" in
+		-o)			 DIR=$2; shift;;
+		-cue)		 CUE=$2; shift;;
+		-cuecharset) CHARSET=$2; shift;;
+		-f)			 FORMAT=$2; shift;;
+		-c)			 NOPIC=0; PIC=$2; shift;;
+		-nc)		 NOPIC=1;;
+		-cs)		 PIC_SIZE=$2; shift;;
+		-d)			 NOSUBDIRS=0;;
+		-nd)		 NOSUBDIRS=1;;
+		-r)			 NORENAME=0;;
+		-nr)		 NORENAME=1;;
+		-p)			 DRY=1;;
+		-D)			 REMOVE=1;;
+		-nD)		 REMOVE=0;;
+		-F)			 FORCE=1;;
+		-colors)	 NOCOLORS=0; update_colors;;
+		-nocolors)	 NOCOLORS=1; update_colors;;
+		-s)			 SAVE=1;;
+		-h|--help|-help) eval "$msg \"${HELP}\""; exit 0;;
+		-v|--version)	 $msg "split2${FORMAT} version: ${VERSION}"; exit 0;;
+		-*) eval "$msg \"${HELP}\""; emsg "\nUnknown option $1"; exit 1;;
+		*)
+			if [ "${INPATH}" ]; then
+				eval "$msg \"${HELP}\""
+				emsg "\nUnknown option $1"
+				exit 1
+			elif [ ! -r "$1" ]; then
+				emsg "Unable to read $1"
+				exit 2
+			else
+				INPATH="$1"
+			fi;;
+	esac
+	shift
 done
 
 # save configuration if needed
 if [ ${SAVE} -eq 1 ]; then
-    echo "DIR=\"${DIR}\"" > "${CONFIG}"
-    echo "NOSUBDIRS=${NOSUBDIRS}" >> "${CONFIG}"
-    echo "NORENAME=${NORENAME}" >> "${CONFIG}"
-    echo "NOPIC=${NOPIC}" >> "${CONFIG}"
-    echo "REMOVE=${REMOVE}" >> "${CONFIG}"
-    echo "PIC_SIZE=${PIC_SIZE}" >> "${CONFIG}"
-    echo "NOCOLORS=${NOCOLORS}" >> "${CONFIG}"
-    $msg "${cP}Configuration saved$cZ"
+	echo "DIR=\"${DIR}\"" > "${CONFIG}"
+	echo "NOSUBDIRS=${NOSUBDIRS}" >> "${CONFIG}"
+	echo "NORENAME=${NORENAME}" >> "${CONFIG}"
+	echo "NOPIC=${NOPIC}" >> "${CONFIG}"
+	echo "REMOVE=${REMOVE}" >> "${CONFIG}"
+	echo "PIC_SIZE=${PIC_SIZE}" >> "${CONFIG}"
+	echo "NOCOLORS=${NOCOLORS}" >> "${CONFIG}"
+	$msg "${cP}Configuration saved$cZ"
 fi
 
 METAFLAC="metaflac --no-utf8-convert"
@@ -175,427 +175,427 @@ VALIDATE="sed s/[^-[:space:][:alnum:]&_#,.'\"\(\)!?]//g"
 # check & print output format
 msg_format="${cG}Output format :$cZ"
 case ${FORMAT} in
-    flac) $msg "$msg_format FLAC";;
-    m4a)  $msg "$msg_format M4A";;
-    mp3)  $msg "$msg_format MP3";;
-    ogg)  $msg "$msg_format OGG VORBIS";;
-    wav)  $msg "$msg_format WAVE";;
-    *)    emsg "Unknown output format \"${FORMAT}\""; exit 1;;
+	flac) $msg "$msg_format FLAC";;
+	m4a)  $msg "$msg_format M4A";;
+	mp3)  $msg "$msg_format MP3";;
+	ogg)  $msg "$msg_format OGG VORBIS";;
+	wav)  $msg "$msg_format WAVE";;
+	*)	  emsg "Unknown output format \"${FORMAT}\""; exit 1;;
 esac
 
 $msg "${cG}Output dir    :$cZ ${DIR:?Output directory was not set}"
 
 # splits a file
 split_file () {
-    FILE="$1"
+	FILE="$1"
 
-    if [ ! -r "${FILE}" ]; then
-        emsg "Can not read the file"
-        return 1
-    fi
+	if [ ! -r "${FILE}" ]; then
+		emsg "Can not read the file"
+		return 1
+	fi
 
-    # search for a cue sheet if not specified
-    if [ -z "${CUE}" ]; then
-        CUE="${FILE}.cue"
-        if [ ! -r "${CUE}" ]; then
-            CUE="${FILE%.*}.cue"
-            if [ ! -r "${CUE}" ]; then
-                # try to extract internal one
-                CUESHEET=$(${METAFLAC} --show-tag=CUESHEET "${FILE}" 2>/dev/null | sed 's/^cuesheet=//;s/^CUESHEET=//')
+	# search for a cue sheet if not specified
+	if [ -z "${CUE}" ]; then
+		CUE="${FILE}.cue"
+		if [ ! -r "${CUE}" ]; then
+			CUE="${FILE%.*}.cue"
+			if [ ! -r "${CUE}" ]; then
+				# try to extract internal one
+				CUESHEET=$(${METAFLAC} --show-tag=CUESHEET "${FILE}" 2>/dev/null | sed 's/^cuesheet=//;s/^CUESHEET=//')
 
-                # try WV internal cue sheet
-                if [ -z "${CUESHEET}" ]; then
-                    CUESHEET=$(wvunpack -q -c "${FILE}" 2>/dev/null)
-                fi
+				# try WV internal cue sheet
+				if [ -z "${CUESHEET}" ]; then
+					CUESHEET=$(wvunpack -q -c "${FILE}" 2>/dev/null)
+				fi
 
-                # try APE internal cue sheet (omfg!)
-                if [ -z "${CUESHEET}" ]; then
-                    APETAGEX=$(tail -c 32 "$1" | cut -b 1-8 2>/dev/null)
-                    if [ "${APETAGEX}" = "APETAGEX" ]; then
-                        LENGTH=$(tail -c 32 "$1" | cut -b 13-16 | od -t u4 | awk '{printf $2}') 2>/dev/null
-                        tail -c ${LENGTH} "$1" | grep -a CUESHEET >/dev/null 2>&1
-                        if [ $? -eq 0 ]; then
-                            CUESHEET=$(tail -c ${LENGTH} "$1" | sed 's/.*CUESHEET.//g' 2>/dev/null)
-                            if [ $? -ne 0 ]; then
-                                CUESHEET=""
-                            fi
-                        fi
-                    fi
-                fi
+				# try APE internal cue sheet (omfg!)
+				if [ -z "${CUESHEET}" ]; then
+					APETAGEX=$(tail -c 32 "$1" | cut -b 1-8 2>/dev/null)
+					if [ "${APETAGEX}" = "APETAGEX" ]; then
+						LENGTH=$(tail -c 32 "$1" | cut -b 13-16 | od -t u4 | awk '{printf $2}') 2>/dev/null
+						tail -c ${LENGTH} "$1" | grep -a CUESHEET >/dev/null 2>&1
+						if [ $? -eq 0 ]; then
+							CUESHEET=$(tail -c ${LENGTH} "$1" | sed 's/.*CUESHEET.//g' 2>/dev/null)
+							if [ $? -ne 0 ]; then
+								CUESHEET=""
+							fi
+						fi
+					fi
+				fi
 
-                if [ "${CUESHEET}" ]; then
-                    $msg "${cP}Found internal cue sheet$cZ"
-                    CUE="${TMPCUE}"
-                    echo "${CUESHEET}" > "${CUE}"
+				if [ "${CUESHEET}" ]; then
+					$msg "${cP}Found internal cue sheet$cZ"
+					CUE="${TMPCUE}"
+					echo "${CUESHEET}" > "${CUE}"
 
-                    if [ $? -ne 0 ]; then
-                        emsg "Unable to save internal cue sheet"
-                        return 1
-                    fi
-                else
-                    unset CUE
-                fi
-            fi
-        fi
-    fi
+					if [ $? -ne 0 ]; then
+						emsg "Unable to save internal cue sheet"
+						return 1
+					fi
+				else
+					unset CUE
+				fi
+			fi
+		fi
+	fi
 
-    # print cue sheet filename
-    if [ -z "${CUE}" ]; then
-        emsg "No cue sheet"
-        return 1
-    fi
+	# print cue sheet filename
+	if [ -z "${CUE}" ]; then
+		emsg "No cue sheet"
+		return 1
+	fi
 
-    if [ "${CHARSET}" ]; then
-        $msg "${cG}Cue charset : $cP${CHARSET} -> utf-8$cZ"
-        CUESHEET=$(iconv -c -f "${CHARSET}" -t utf-8 "${CUE}" 2>/dev/null)
-        if [ $? -ne 0 ]; then
-            emsg "Unable to convert cue sheet from ${CHARSET} to utf-8"
-            return 1
-        fi
-        CUE="${TMPCUE}"
-        echo "${CUESHEET}" > "${CUE}"
+	if [ "${CHARSET}" ]; then
+		$msg "${cG}Cue charset : $cP${CHARSET} -> utf-8$cZ"
+		CUESHEET=$(iconv -c -f "${CHARSET}" -t utf-8 "${CUE}" 2>/dev/null)
+		if [ $? -ne 0 ]; then
+			emsg "Unable to convert cue sheet from ${CHARSET} to utf-8"
+			return 1
+		fi
+		CUE="${TMPCUE}"
+		echo "${CUESHEET}" > "${CUE}"
 
-        if [ $? -ne 0 ]; then
-            emsg "Unable to save converted cue sheet"
-            return 1
-        fi
-    fi
+		if [ $? -ne 0 ]; then
+			emsg "Unable to save converted cue sheet"
+			return 1
+		fi
+	fi
 
-    # search for a front cover image
-    if [ ${NOPIC} -eq 1 ]; then
-        unset PIC
-    elif [ -z "${PIC}" ]; then
-        # try common names 
-        SDIR=$(dirname "${FILE}")
+	# search for a front cover image
+	if [ ${NOPIC} -eq 1 ]; then
+		unset PIC
+	elif [ -z "${PIC}" ]; then
+		# try common names 
+		SDIR=$(dirname "${FILE}")
 
-        for i in cover.jpg front_cover.jpg folder.jpg; do
-            if [ -r "${SDIR}/$i" ]; then
-                PIC="${SDIR}/$i"
-                break
-            fi
-        done
+		for i in cover.jpg front_cover.jpg folder.jpg; do
+			if [ -r "${SDIR}/$i" ]; then
+				PIC="${SDIR}/$i"
+				break
+			fi
+		done
 
-        # try to extract internal one
-        if [ -z "${PIC}" ]; then
-            ${METAFLAC} --export-picture-to="${TMPPIC}" "${FILE}" 2>/dev/null
-            if [ $? -ne 0 ]; then
-                unset PIC
-            else
-                PIC="${TMPPIC}"
-            fi
-        fi
-    fi
+		# try to extract internal one
+		if [ -z "${PIC}" ]; then
+			${METAFLAC} --export-picture-to="${TMPPIC}" "${FILE}" 2>/dev/null
+			if [ $? -ne 0 ]; then
+				unset PIC
+			else
+				PIC="${TMPPIC}"
+			fi
+		fi
+	fi
 
-    $msg "${cG}Cue sheet     :$cZ ${CUE}"
-    $msg "${cG}Cover image   :$cZ ${PIC:-not set}"
+	$msg "${cG}Cue sheet     :$cZ ${CUE}"
+	$msg "${cG}Cover image   :$cZ ${PIC:-not set}"
 
-    # file removal warning
-    if [ ${REMOVE} -eq 1 ]; then
-        msg_removal="\n${cR}Also remove original"
-        if [ ${FORCE} -eq 1 ]; then
-            $msg "$msg_removal (WITHOUT ASKING)$cZ"
-        else
-            $msg "$msg_removal if user says 'y'$cZ"
-        fi
-    fi
+	# file removal warning
+	if [ ${REMOVE} -eq 1 ]; then
+		msg_removal="\n${cR}Also remove original"
+		if [ ${FORCE} -eq 1 ]; then
+			$msg "$msg_removal (WITHOUT ASKING)$cZ"
+		else
+			$msg "$msg_removal if user says 'y'$cZ"
+		fi
+	fi
 
-    # get common tags
-    TAG_ARTIST=$(${GETTAG} %P "${CUE}" 2>/dev/null)
-    TAG_ALBUM=$(${GETTAG} %T "${CUE}" 2>/dev/null)
-    TRACKS_NUM=$(${GETTAG} %N "${CUE}" 2>/dev/null)
+	# get common tags
+	TAG_ARTIST=$(${GETTAG} %P "${CUE}" 2>/dev/null)
+	TAG_ALBUM=$(${GETTAG} %T "${CUE}" 2>/dev/null)
+	TRACKS_NUM=$(${GETTAG} %N "${CUE}" 2>/dev/null)
 
-    if [ -z "${TRACKS_NUM}" ]; then
-        emsg "Failed to get number of tracks from CUE sheet."
-        emsg "There may be an error in the sheet."
-        emsg "Running ${GETTAG} %N \"${CUE}\" produces this:"
-        ${GETTAG} %N "${CUE}"
-        return 1
-    fi
+	if [ -z "${TRACKS_NUM}" ]; then
+		emsg "Failed to get number of tracks from CUE sheet."
+		emsg "There may be an error in the sheet."
+		emsg "Running ${GETTAG} %N \"${CUE}\" produces this:"
+		${GETTAG} %N "${CUE}"
+		return 1
+	fi
 
-    TAG_GENRE=$(awk '{ if (/REM[ \t]+GENRE[ \t]+(.*)/) { print $0; exit } }' < "${CUE}")
-    TAG_GENRE=$(echo ${TAG_GENRE} | sed 's/REM[ \t]\+GENRE[ \t]\+//;s/"\(.*\)"/\1/')
+	TAG_GENRE=$(awk '{ if (/REM[ \t]+GENRE[ \t]+(.*)/) { print $0; exit } }' < "${CUE}")
+	TAG_GENRE=$(echo ${TAG_GENRE} | sed 's/REM[ \t]\+GENRE[ \t]\+//;s/"\(.*\)"/\1/')
 
-    YEAR=$(awk '{ if (/REM[ \t]+DATE/) { printf "%i", $3; exit } }' < "${CUE}")
-    YEAR=$(echo ${YEAR} | tr -d -c '[:digit:]')
+	YEAR=$(awk '{ if (/REM[ \t]+DATE/) { printf "%i", $3; exit } }' < "${CUE}")
+	YEAR=$(echo ${YEAR} | tr -d -c '[:digit:]')
 
-    unset TAG_DATE
+	unset TAG_DATE
 
-    if [ "${YEAR}" ]; then
-        if [ ${YEAR} -ne 0 ]; then
-            TAG_DATE="${YEAR}"
-        fi
-    fi
+	if [ "${YEAR}" ]; then
+		if [ ${YEAR} -ne 0 ]; then
+			TAG_DATE="${YEAR}"
+		fi
+	fi
 
-    $msg "\n${cG}Artist :$cZ ${TAG_ARTIST}"
-    $msg "${cG}Album  :$cZ ${TAG_ALBUM}"
-    if [ "${TAG_GENRE}" ]; then
-        $msg "${cG}Genre  :$cZ ${TAG_GENRE}"
-    fi
-    if [ "${TAG_DATE}" ]; then
-        $msg "${cG}Year   :$cZ ${TAG_DATE}"
-    fi
-    $msg "${cG}Tracks :$cZ ${TRACKS_NUM}\n"
+	$msg "\n${cG}Artist :$cZ ${TAG_ARTIST}"
+	$msg "${cG}Album  :$cZ ${TAG_ALBUM}"
+	if [ "${TAG_GENRE}" ]; then
+		$msg "${cG}Genre  :$cZ ${TAG_GENRE}"
+	fi
+	if [ "${TAG_DATE}" ]; then
+		$msg "${cG}Year   :$cZ ${TAG_DATE}"
+	fi
+	$msg "${cG}Tracks :$cZ ${TRACKS_NUM}\n"
 
-    # prepare output directory
-    OUT="${DIR}"
+	# prepare output directory
+	OUT="${DIR}"
 
-    if [ ${NOSUBDIRS} -ne 1 ]; then
-        DIR_ARTIST=$(echo ${TAG_ARTIST} | ${VALIDATE})
-        DIR_ALBUM=$(echo ${TAG_ALBUM} | ${VALIDATE})
+	if [ ${NOSUBDIRS} -ne 1 ]; then
+		DIR_ARTIST=$(echo ${TAG_ARTIST} | ${VALIDATE})
+		DIR_ALBUM=$(echo ${TAG_ALBUM} | ${VALIDATE})
 
-        if [ "${TAG_DATE}" ]; then
-            DIR_ALBUM="${TAG_DATE} - ${DIR_ALBUM}"
-        fi
+		if [ "${TAG_DATE}" ]; then
+			DIR_ALBUM="${TAG_DATE} - ${DIR_ALBUM}"
+		fi
 
-        if [ ${DRY} -ne 1 ]; then
-            mkdir -p "${OUT}/${DIR_ARTIST}"
-        fi
-        OUT="${OUT}/${DIR_ARTIST}/${DIR_ALBUM}"
-    fi
+		if [ ${DRY} -ne 1 ]; then
+			mkdir -p "${OUT}/${DIR_ARTIST}"
+		fi
+		OUT="${OUT}/${DIR_ARTIST}/${DIR_ALBUM}"
+	fi
 
-    $msg "${cP}Saving tracks to $cZ\"${OUT}\""
+	$msg "${cP}Saving tracks to $cZ\"${OUT}\""
 
-    if [ ${DRY} -ne 1 ]; then
-        # create output dir
-        mkdir "${OUT}"
+	if [ ${DRY} -ne 1 ]; then
+		# create output dir
+		mkdir "${OUT}"
 
-        if [ $? -ne 0 -a ${NOSUBDIRS} -ne 1 ]; then
-            emsg "Failed to create output directory (already splitted?)"
-            return 1
-        fi
+		if [ $? -ne 0 -a ${NOSUBDIRS} -ne 1 ]; then
+			emsg "Failed to create output directory (already splitted?)"
+			return 1
+		fi
 
-        case ${FORMAT} in
-            flac) ENC="flac flac -8 - -o %f";;
-            m4a)  ENC="cust ext=m4a faac -q 500 -o %f -";;
-            mp3)  ENC="cust ext=mp3 lame --preset extreme - %f";;
-            ogg)  ENC="cust ext=ogg oggenc -q 10 - -o %f";;
-            wav)  ENC="wav";;
-            *)    emsg "Unknown output format ${FORMAT}"; exit 1;;
-        esac
+		case ${FORMAT} in
+			flac) ENC="flac flac -8 - -o %f";;
+			m4a)  ENC="cust ext=m4a faac -q 500 -o %f -";;
+			mp3)  ENC="cust ext=mp3 lame --preset extreme - %f";;
+			ogg)  ENC="cust ext=ogg oggenc -q 10 - -o %f";;
+			wav)  ENC="wav";;
+			*)	  emsg "Unknown output format ${FORMAT}"; exit 1;;
+		esac
 
-        # split to tracks
-        cuebreakpoints "${CUE}" 2>/dev/null | \
-            shnsplit -O never -o "${ENC}" -d "${OUT}" -t "%n" "${FILE}"
-        if [ $? -ne 0 ]; then
-            emsg "Failed to split"
-            return 1
-        fi
+		# split to tracks
+		cuebreakpoints "${CUE}" 2>/dev/null | \
+			shnsplit -O never -o "${ENC}" -d "${OUT}" -t "%n" "${FILE}"
+		if [ $? -ne 0 ]; then
+			emsg "Failed to split"
+			return 1
+		fi
 
-        # prepare cover image
-        if [ "${PIC}" ]; then
-            convert "${PIC}" -resize "${PIC_SIZE}" "${TMPPIC}"
-            if [ $? -eq 0 ]; then
-                PIC="${TMPPIC}"
-            else
-                $msg "${cR}Failed to convert cover image$cZ"
-                unset PIC
-            fi
-        fi
-    fi
+		# prepare cover image
+		if [ "${PIC}" ]; then
+			convert "${PIC}" -resize "${PIC_SIZE}" "${TMPPIC}"
+			if [ $? -eq 0 ]; then
+				PIC="${TMPPIC}"
+			else
+				$msg "${cR}Failed to convert cover image$cZ"
+				unset PIC
+			fi
+		fi
+	fi
 
-    # set tags and rename
-    $msg "\n${cP}Setting tags$cZ"
+	# set tags and rename
+	$msg "\n${cP}Setting tags$cZ"
 
-    i=1
-    while [ $i -le ${TRACKS_NUM} ]; do
-        TAG_TITLE=$(cueprint -n $i -t %t "${CUE}" 2>/dev/null)
-        FILE_TRACK="$(printf %02i $i)"
-        FILE_TITLE=$(echo ${TAG_TITLE} | ${VALIDATE})
-        f="${OUT}/${FILE_TRACK}.${FORMAT}"
+	i=1
+	while [ $i -le ${TRACKS_NUM} ]; do
+		TAG_TITLE=$(cueprint -n $i -t %t "${CUE}" 2>/dev/null)
+		FILE_TRACK="$(printf %02i $i)"
+		FILE_TITLE=$(echo ${TAG_TITLE} | ${VALIDATE})
+		f="${OUT}/${FILE_TRACK}.${FORMAT}"
 
-        $msg "$i: $cG${TAG_TITLE}$cZ"
+		$msg "$i: $cG${TAG_TITLE}$cZ"
 
-        if [ ${NORENAME} -ne 1 ]; then
-            FINAL="${OUT}/${FILE_TRACK} - ${FILE_TITLE}.${FORMAT}"
-            if [ ${DRY} -ne 1 ]; then
-                mv "$f" "${FINAL}"
-                if [ $? -ne 0 ]; then
-                    emsg "Failed to rename track file"
-                    return 1
-                fi
-            fi
-        else
-            FINAL="$f"
-        fi
+		if [ ${NORENAME} -ne 1 ]; then
+			FINAL="${OUT}/${FILE_TRACK} - ${FILE_TITLE}.${FORMAT}"
+			if [ ${DRY} -ne 1 ]; then
+				mv "$f" "${FINAL}"
+				if [ $? -ne 0 ]; then
+					emsg "Failed to rename track file"
+					return 1
+				fi
+			fi
+		else
+			FINAL="$f"
+		fi
 
-        if [ ${DRY} -ne 1 ]; then
-            case ${FORMAT} in
-                flac)
-                    ${METAFLAC} --remove-all-tags \
-                        --set-tag="ARTIST=${TAG_ARTIST}" \
-                        --set-tag="ALBUM=${TAG_ALBUM}" \
-                        --set-tag="TITLE=${TAG_TITLE}" \
-                        --set-tag="TRACKNUMBER=$i" \
-                        "${FINAL}" >/dev/null
-                    RES=$?
+		if [ ${DRY} -ne 1 ]; then
+			case ${FORMAT} in
+				flac)
+					${METAFLAC} --remove-all-tags \
+						--set-tag="ARTIST=${TAG_ARTIST}" \
+						--set-tag="ALBUM=${TAG_ALBUM}" \
+						--set-tag="TITLE=${TAG_TITLE}" \
+						--set-tag="TRACKNUMBER=$i" \
+						"${FINAL}" >/dev/null
+					RES=$?
 
-                    if [ "${TAG_GENRE}" ]; then
-                        ${METAFLAC} --set-tag="GENRE=${TAG_GENRE}" "${FINAL}" >/dev/null
-                        RES=$RES$?
-                    fi
+					if [ "${TAG_GENRE}" ]; then
+						${METAFLAC} --set-tag="GENRE=${TAG_GENRE}" "${FINAL}" >/dev/null
+						RES=$RES$?
+					fi
 
-                    if [ "${TAG_DATE}" ]; then
-                        ${METAFLAC} --set-tag="DATE=${TAG_DATE}" "${FINAL}" >/dev/null
-                        RES=$RES$?
-                    fi
+					if [ "${TAG_DATE}" ]; then
+						${METAFLAC} --set-tag="DATE=${TAG_DATE}" "${FINAL}" >/dev/null
+						RES=$RES$?
+					fi
 
-                    if [ "${PIC}" ]; then
-                        ${METAFLAC} --import-picture-from="${PIC}" "${FINAL}" >/dev/null
-                        RES=$RES$?
-                    fi
-                    ;;
+					if [ "${PIC}" ]; then
+						${METAFLAC} --import-picture-from="${PIC}" "${FINAL}" >/dev/null
+						RES=$RES$?
+					fi
+					;;
 
-                mp3)
-                    ${ID3TAG} "-a${TAG_ARTIST}" \
-                        "-A${TAG_ALBUM}" \
-                        "-s${TAG_TITLE}" \
-                        "-t$i" \
-                        "-T${TRACKS_NUM}" \
-                        "${FINAL}" >/dev/null
-                    RES=$?
+				mp3)
+					${ID3TAG} "-a${TAG_ARTIST}" \
+						"-A${TAG_ALBUM}" \
+						"-s${TAG_TITLE}" \
+						"-t$i" \
+						"-T${TRACKS_NUM}" \
+						"${FINAL}" >/dev/null
+					RES=$?
 
-                    if [ "${TAG_GENRE}" ]; then
-                        ${ID3TAG} -g"${TAG_GENRE}" "${FINAL}" >/dev/null
-                        RES=$RES$?
-                    fi
+					if [ "${TAG_GENRE}" ]; then
+						${ID3TAG} -g"${TAG_GENRE}" "${FINAL}" >/dev/null
+						RES=$RES$?
+					fi
 
-                    if [ "${TAG_DATE}" ]; then
-                        ${ID3TAG} -y"${TAG_DATE}" "${FINAL}" >/dev/null
-                        RES=$RES$?
-                    fi
-                    ;;
+					if [ "${TAG_DATE}" ]; then
+						${ID3TAG} -y"${TAG_DATE}" "${FINAL}" >/dev/null
+						RES=$RES$?
+					fi
+					;;
 
-                ogg)
-                    ${VORBISCOMMENT} "${FINAL}" \
-                        -t "ARTIST=${TAG_ARTIST}" \
-                        -t "ALBUM=${TAG_ALBUM}" \
-                        -t "TITLE=${TAG_TITLE}" \
-                        -t "TRACKNUMBER=$i" >/dev/null
-                    RES=$?
+				ogg)
+					${VORBISCOMMENT} "${FINAL}" \
+						-t "ARTIST=${TAG_ARTIST}" \
+						-t "ALBUM=${TAG_ALBUM}" \
+						-t "TITLE=${TAG_TITLE}" \
+						-t "TRACKNUMBER=$i" >/dev/null
+					RES=$?
 
-                    if [ "${TAG_GENRE}" ]; then
-                        ${VORBISCOMMENT} "${FINAL}" -t "GENRE=${TAG_GENRE}" >/dev/null
-                        RES=$RES$?
-                    fi
+					if [ "${TAG_GENRE}" ]; then
+						${VORBISCOMMENT} "${FINAL}" -t "GENRE=${TAG_GENRE}" >/dev/null
+						RES=$RES$?
+					fi
 
-                    if [ "${TAG_DATE}" ]; then
-                        ${VORBISCOMMENT} "${FINAL}" -t "DATE=${TAG_DATE}" >/dev/null
-                        RES=$RES$?
-                    fi
-                    ;;
+					if [ "${TAG_DATE}" ]; then
+						${VORBISCOMMENT} "${FINAL}" -t "DATE=${TAG_DATE}" >/dev/null
+						RES=$RES$?
+					fi
+					;;
 
-                m4a)
-                    ${MP4TAGS} "${FINAL}" \
-                        -a "${TAG_ARTIST}" \
-                        -A "${TAG_ALBUM}" \
-                        -s "${TAG_TITLE}" \
-                        -t "$i" \
-                        -T "${TRACKS_NUM}" >/dev/null
-                    RES=$?
+				m4a)
+					${MP4TAGS} "${FINAL}" \
+						-a "${TAG_ARTIST}" \
+						-A "${TAG_ALBUM}" \
+						-s "${TAG_TITLE}" \
+						-t "$i" \
+						-T "${TRACKS_NUM}" >/dev/null
+					RES=$?
 
-                    if [ "${TAG_GENRE}" ]; then
-                        ${MP4TAGS} "${FINAL}" -g "${TAG_GENRE}" >/dev/null
-                        RES=$RES$?
-                    fi
+					if [ "${TAG_GENRE}" ]; then
+						${MP4TAGS} "${FINAL}" -g "${TAG_GENRE}" >/dev/null
+						RES=$RES$?
+					fi
 
-                    if [ "${TAG_DATE}" ]; then
-                        ${MP4TAGS} "${FINAL}" -y "${TAG_DATE}" >/dev/null
-                        RES=$RES$?
-                    fi
+					if [ "${TAG_DATE}" ]; then
+						${MP4TAGS} "${FINAL}" -y "${TAG_DATE}" >/dev/null
+						RES=$RES$?
+					fi
 
-                    if [ "${PIC}" ]; then
-                        ${MP4TAGS} "${FINAL}" -P "${PIC}" >/dev/null
-                        RES=$RES$?
-                    fi
-                    ;;
+					if [ "${PIC}" ]; then
+						${MP4TAGS} "${FINAL}" -P "${PIC}" >/dev/null
+						RES=$RES$?
+					fi
+					;;
 
-                wav)
-                    RES=0
-                    ;;
+				wav)
+					RES=0
+					;;
 
-                *)
-                    emsg "Unknown output format ${FORMAT}"
-                    return 1
-                    ;;
-            esac
+				*)
+					emsg "Unknown output format ${FORMAT}"
+					return 1
+					;;
+			esac
 
-            if [ ${RES} -ne 0 ]; then
-                emsg "Failed to set tags for track"
-                return 1
-            fi
-        fi
+			if [ ${RES} -ne 0 ]; then
+				emsg "Failed to set tags for track"
+				return 1
+			fi
+		fi
 
-        $msg "   -> ${cP}${FINAL}$cZ"
+		$msg "   -> ${cP}${FINAL}$cZ"
 
-        i=$(($i + 1))
-    done
+		i=$(($i + 1))
+	done
 
-    rm -f "${TMPPIC}"
-    rm -f "${TMPCUE}"
+	rm -f "${TMPPIC}"
+	rm -f "${TMPCUE}"
 
-    if [ ${DRY} -ne 1 -a ${REMOVE} -eq 1 ]; then
-        YEP="n"
+	if [ ${DRY} -ne 1 -a ${REMOVE} -eq 1 ]; then
+		YEP="n"
 
-        if [ ${FORCE} -ne 1 ]; then
-            echo -n "Are you sure you want to delete original? [y] >"
-            read YEP
-        fi
+		if [ ${FORCE} -ne 1 ]; then
+			echo -n "Are you sure you want to delete original? [y] >"
+			read YEP
+		fi
 
-        if [ "${YEP}" = "y" -o ${FORCE} -eq 1 ]; then
-            rm -f "${FILE}"
-        fi
-    fi
+		if [ "${YEP}" = "y" -o ${FORCE} -eq 1 ]; then
+			rm -f "${FILE}"
+		fi
+	fi
 
-    return 0
+	return 0
 }
 
 split_collection () {
-    NUM_FAILED=0
+	NUM_FAILED=0
 
-    while read -r FILE; do
-        $msg "$cG>> $cC\"${FILE}\"$cZ"
-        unset PIC CUE
-        split_file "${FILE}"
+	while read -r FILE; do
+		$msg "$cG>> $cC\"${FILE}\"$cZ"
+		unset PIC CUE
+		split_file "${FILE}"
 
-        if [ ! $? -eq 0 ]; then
-            emsg "Failed to split \"${FILE}\""
-            echo "${FILE}" >> "${FAILED}"
-            NUM_FAILED=$((${NUM_FAILED} + 1))
-        fi
+		if [ ! $? -eq 0 ]; then
+			emsg "Failed to split \"${FILE}\""
+			echo "${FILE}" >> "${FAILED}"
+			NUM_FAILED=$((${NUM_FAILED} + 1))
+		fi
 
-        echo
-    done
+		echo
+	done
 
-    if [ ${NUM_FAILED} -ne 0 ]; then
-        emsg "${NUM_FAILED} file(s) failed to split (already splited?):"
-        $msg "${cR}"
-        sort "${FAILED}" -o "${FAILED}"
-        cat "${FAILED}"
-        emsg "\nThese files are also listed in ${FAILED}."
-        return 1
-    fi
+	if [ ${NUM_FAILED} -ne 0 ]; then
+		emsg "${NUM_FAILED} file(s) failed to split (already splited?):"
+		$msg "${cR}"
+		sort "${FAILED}" -o "${FAILED}"
+		cat "${FAILED}"
+		emsg "\nThese files are also listed in ${FAILED}."
+		return 1
+	fi
 
-    return 0
+	return 0
 }
 
 # searches for files in a directory and splits them
 split_dir () {
-    rm -f "${FAILED}"
-    find "$1" -iname '*.flac' -o -iname '*.ape' -o -iname '*.wv' | split_collection
+	rm -f "${FAILED}"
+	find "$1" -iname '*.flac' -o -iname '*.ape' -o -iname '*.wv' | split_collection
 }
 
 if [ -d "${INPATH}" ]; then
-    if [ ! -x "${INPATH}" ]; then
-        emsg "Directory \"${INPATH}\" is not accessible"
-        exit 2
-    fi
-    $msg "${cG}Input dir     :$cZ ${INPATH}$cZ\n"
-    split_dir "${INPATH}"
+	if [ ! -x "${INPATH}" ]; then
+		emsg "Directory \"${INPATH}\" is not accessible"
+		exit 2
+	fi
+	$msg "${cG}Input dir     :$cZ ${INPATH}$cZ\n"
+	split_dir "${INPATH}"
 elif [ "${INPATH}" ]; then
-    split_file "${INPATH}"
+	split_file "${INPATH}"
 else
-    emsg "No input filename given. Use -h for help."
-    exit 1
+	emsg "No input filename given. Use -h for help."
+	exit 1
 fi
 
 # exit code of split_dir or split_file
@@ -604,5 +604,5 @@ STATUS=$?
 $msg "\n${cP}Finished$cZ"
 
 if [ ${STATUS} -ne 0 ]; then
-    exit 3
+	exit 3
 fi
