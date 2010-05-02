@@ -360,7 +360,7 @@ split_file () {
 		mkdir "${OUT}"
 
 		if [ $? -ne 0 -a ${NOSUBDIRS} -ne 1 ]; then
-			emsg "Failed to create output directory (already splitted?)"
+			emsg "Failed to create output directory (already split?)"
 			return 1
 		fi
 
