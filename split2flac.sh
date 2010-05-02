@@ -304,6 +304,14 @@ split_file () {
     TAG_ALBUM=$(${GETTAG} %T "${CUE}" 2>/dev/null)
     TRACKS_NUM=$(${GETTAG} %N "${CUE}" 2>/dev/null)
 
+    if [ -z "${TRACKS_NUM}" ]; then
+        emsg "Failed to get number of tracks from CUE sheet."
+        emsg "There may be an error in the sheet."
+        emsg "Running ${GETTAG} %N \"${CUE}\" produces this:"
+        ${GETTAG} %N "${CUE}"
+        return 1
+    fi
+
     TAG_GENRE=$(awk '{ if (/REM[ \t]+GENRE[ \t]+(.*)/) { print $0; exit } }' < "${CUE}")
     TAG_GENRE=$(echo ${TAG_GENRE} | sed 's/REM[ \t]\+GENRE[ \t]\+//;s/"\(.*\)"/\1/')
 
