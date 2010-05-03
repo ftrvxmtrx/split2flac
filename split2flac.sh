@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/dash
 # Copyright (c) 2009-2010 Serge "ftrvxmtrx" Ziryukin
 #
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -91,9 +91,9 @@ It's better to pass \$cP'-p'\$cZ option to see what will happen when actually sp
 You may want to pass \$cP'-s'\$cZ option for the first run to save default configuration
 (output dir, cover image size, etc.) so you won't need to pass a lot of options
 every time, just a filename. Script will try to find CUE sheet if it wasn't specified.
-It also supports internal CUE sheets (FLAC, APE and WV)."
+It also supports internal CUE sheets (FLAC, APE and WV).\n"
 
-msg="echo -e"
+msg="printf"
 
 emsg () {
 	$msg "${cR}$1${cZ}"
@@ -136,15 +136,15 @@ while [ "$1" ]; do
 		-nocolors)	 NOCOLORS=1; update_colors;;
 		-s)			 SAVE=1;;
 		-h|--help|-help) eval "$msg \"${HELP}\""; exit 0;;
-		-v|--version)	 $msg "split2${FORMAT} version: ${VERSION}"; exit 0;;
-		-*) eval "$msg \"${HELP}\""; emsg "\nUnknown option $1"; exit 1;;
+		-v|--version)	 $msg "split2${FORMAT} version: ${VERSION}\n"; exit 0;;
+		-*) eval "$msg \"${HELP}\""; emsg "\nUnknown option $1\n"; exit 1;;
 		*)
 			if [ "${INPATH}" ]; then
 				eval "$msg \"${HELP}\""
-				emsg "\nUnknown option $1"
+				emsg "\nUnknown option $1\n"
 				exit 1
 			elif [ ! -r "$1" ]; then
-				emsg "Unable to read $1"
+				emsg "Unable to read $1\n"
 				exit 2
 			else
 				INPATH="$1"
@@ -162,7 +162,7 @@ if [ ${SAVE} -eq 1 ]; then
 	echo "REMOVE=${REMOVE}" >> "${CONFIG}"
 	echo "PIC_SIZE=${PIC_SIZE}" >> "${CONFIG}"
 	echo "NOCOLORS=${NOCOLORS}" >> "${CONFIG}"
-	$msg "${cP}Configuration saved$cZ"
+	$msg "${cP}Configuration saved$cZ\n"
 fi
 
 METAFLAC="metaflac --no-utf8-convert"
@@ -180,17 +180,17 @@ case ${FORMAT} in
 	mp3)  $msg "$msg_format MP3";;
 	ogg)  $msg "$msg_format OGG VORBIS";;
 	wav)  $msg "$msg_format WAVE";;
-	*)	  emsg "Unknown output format \"${FORMAT}\""; exit 1;;
+	*)	  emsg "Unknown output format \"${FORMAT}\"\n"; exit 1;;
 esac
 
-$msg "${cG}Output dir    :$cZ ${DIR:?Output directory was not set}"
+$msg "\n${cG}Output dir    :$cZ ${DIR:?Output directory was not set}\n"
 
 # splits a file
 split_file () {
 	FILE="$1"
 
 	if [ ! -r "${FILE}" ]; then
-		emsg "Can not read the file"
+		emsg "Can not read the file\n"
 		return 1
 	fi
 
@@ -224,12 +224,12 @@ split_file () {
 				fi
 
 				if [ "${CUESHEET}" ]; then
-					$msg "${cP}Found internal cue sheet$cZ"
+					$msg "${cP}Found internal cue sheet$cZ\n"
 					CUE="${TMPCUE}"
 					echo "${CUESHEET}" > "${CUE}"
 
 					if [ $? -ne 0 ]; then
-						emsg "Unable to save internal cue sheet"
+						emsg "Unable to save internal cue sheet\n"
 						return 1
 					fi
 				else
@@ -241,22 +241,22 @@ split_file () {
 
 	# print cue sheet filename
 	if [ -z "${CUE}" ]; then
-		emsg "No cue sheet"
+		emsg "No cue sheet\n"
 		return 1
 	fi
 
 	if [ "${CHARSET}" ]; then
-		$msg "${cG}Cue charset : $cP${CHARSET} -> utf-8$cZ"
+		$msg "${cG}Cue charset : $cP${CHARSET} -> utf-8$cZ\n"
 		CUESHEET=$(iconv -c -f "${CHARSET}" -t utf-8 "${CUE}" 2>/dev/null)
 		if [ $? -ne 0 ]; then
-			emsg "Unable to convert cue sheet from ${CHARSET} to utf-8"
+			emsg "Unable to convert cue sheet from ${CHARSET} to utf-8\n"
 			return 1
 		fi
 		CUE="${TMPCUE}"
 		echo "${CUESHEET}" > "${CUE}"
 
 		if [ $? -ne 0 ]; then
-			emsg "Unable to save converted cue sheet"
+			emsg "Unable to save converted cue sheet\n"
 			return 1
 		fi
 	fi
@@ -286,16 +286,16 @@ split_file () {
 		fi
 	fi
 
-	$msg "${cG}Cue sheet     :$cZ ${CUE}"
-	$msg "${cG}Cover image   :$cZ ${PIC:-not set}"
+	$msg "${cG}Cue sheet     :$cZ ${CUE}\n"
+	$msg "${cG}Cover image   :$cZ ${PIC:-not set}\n"
 
 	# file removal warning
 	if [ ${REMOVE} -eq 1 ]; then
 		msg_removal="\n${cR}Also remove original"
 		if [ ${FORCE} -eq 1 ]; then
-			$msg "$msg_removal (WITHOUT ASKING)$cZ"
+			$msg "$msg_removal (WITHOUT ASKING)$cZ\n"
 		else
-			$msg "$msg_removal if user says 'y'$cZ"
+			$msg "$msg_removal if user says 'y'$cZ\n"
 		fi
 	fi
 
@@ -305,9 +305,9 @@ split_file () {
 	TRACKS_NUM=$(${GETTAG} %N "${CUE}" 2>/dev/null)
 
 	if [ -z "${TRACKS_NUM}" ]; then
-		emsg "Failed to get number of tracks from CUE sheet."
-		emsg "There may be an error in the sheet."
-		emsg "Running ${GETTAG} %N \"${CUE}\" produces this:"
+		emsg "Failed to get number of tracks from CUE sheet.\n"
+		emsg "There may be an error in the sheet.\n"
+		emsg "Running ${GETTAG} %N \"${CUE}\" produces this:\n"
 		${GETTAG} %N "${CUE}"
 		return 1
 	fi
@@ -326,15 +326,15 @@ split_file () {
 		fi
 	fi
 
-	$msg "\n${cG}Artist :$cZ ${TAG_ARTIST}"
-	$msg "${cG}Album  :$cZ ${TAG_ALBUM}"
+	$msg "\n${cG}Artist :$cZ ${TAG_ARTIST}\n"
+	$msg "${cG}Album  :$cZ ${TAG_ALBUM}\n"
 	if [ "${TAG_GENRE}" ]; then
-		$msg "${cG}Genre  :$cZ ${TAG_GENRE}"
+		$msg "${cG}Genre  :$cZ ${TAG_GENRE}\n"
 	fi
 	if [ "${TAG_DATE}" ]; then
-		$msg "${cG}Year   :$cZ ${TAG_DATE}"
+		$msg "${cG}Year   :$cZ ${TAG_DATE}\n"
 	fi
-	$msg "${cG}Tracks :$cZ ${TRACKS_NUM}\n"
+	$msg "${cG}Tracks :$cZ ${TRACKS_NUM}\n\n"
 
 	# prepare output directory
 	OUT="${DIR}"
@@ -353,14 +353,14 @@ split_file () {
 		OUT="${OUT}/${DIR_ARTIST}/${DIR_ALBUM}"
 	fi
 
-	$msg "${cP}Saving tracks to $cZ\"${OUT}\""
+	$msg "${cP}Saving tracks to $cZ\"${OUT}\"\n"
 
 	if [ ${DRY} -ne 1 ]; then
 		# create output dir
 		mkdir "${OUT}"
 
 		if [ $? -ne 0 -a ${NOSUBDIRS} -ne 1 ]; then
-			emsg "Failed to create output directory (already split?)"
+			emsg "Failed to create output directory (already split?)\n"
 			return 1
 		fi
 
@@ -370,14 +370,14 @@ split_file () {
 			mp3)  ENC="cust ext=mp3 lame --preset extreme - %f";;
 			ogg)  ENC="cust ext=ogg oggenc -q 10 - -o %f";;
 			wav)  ENC="wav";;
-			*)	  emsg "Unknown output format ${FORMAT}"; exit 1;;
+			*)	  emsg "Unknown output format ${FORMAT}\n"; exit 1;;
 		esac
 
 		# split to tracks
 		cuebreakpoints "${CUE}" 2>/dev/null | \
 			shnsplit -O never -o "${ENC}" -d "${OUT}" -t "%n" "${FILE}"
 		if [ $? -ne 0 ]; then
-			emsg "Failed to split"
+			emsg "Failed to split\n"
 			return 1
 		fi
 
@@ -387,14 +387,14 @@ split_file () {
 			if [ $? -eq 0 ]; then
 				PIC="${TMPPIC}"
 			else
-				$msg "${cR}Failed to convert cover image$cZ"
+				$msg "${cR}Failed to convert cover image$cZ\n"
 				unset PIC
 			fi
 		fi
 	fi
 
 	# set tags and rename
-	$msg "\n${cP}Setting tags$cZ"
+	$msg "\n${cP}Setting tags$cZ\n"
 
 	i=1
 	while [ $i -le ${TRACKS_NUM} ]; do
@@ -403,14 +403,14 @@ split_file () {
 		FILE_TITLE=$(echo ${TAG_TITLE} | ${VALIDATE})
 		f="${OUT}/${FILE_TRACK}.${FORMAT}"
 
-		$msg "$i: $cG${TAG_TITLE}$cZ"
+		$msg "$i: $cG${TAG_TITLE}$cZ\n"
 
 		if [ ${NORENAME} -ne 1 ]; then
 			FINAL="${OUT}/${FILE_TRACK} - ${FILE_TITLE}.${FORMAT}"
 			if [ ${DRY} -ne 1 ]; then
 				mv "$f" "${FINAL}"
 				if [ $? -ne 0 ]; then
-					emsg "Failed to rename track file"
+					emsg "Failed to rename track file\n"
 					return 1
 				fi
 			fi
@@ -514,18 +514,18 @@ split_file () {
 					;;
 
 				*)
-					emsg "Unknown output format ${FORMAT}"
+					emsg "Unknown output format ${FORMAT}\n"
 					return 1
 					;;
 			esac
 
 			if [ ${RES} -ne 0 ]; then
-				emsg "Failed to set tags for track"
+				emsg "Failed to set tags for track\n"
 				return 1
 			fi
 		fi
 
-		$msg "   -> ${cP}${FINAL}$cZ"
+		$msg "   -> ${cP}${FINAL}$cZ\n"
 
 		i=$(($i + 1))
 	done
@@ -553,12 +553,12 @@ split_collection () {
 	NUM_FAILED=0
 
 	while read -r FILE; do
-		$msg "$cG>> $cC\"${FILE}\"$cZ"
+		$msg "$cG>> $cC\"${FILE}\"$cZ\n"
 		unset PIC CUE
 		split_file "${FILE}"
 
 		if [ ! $? -eq 0 ]; then
-			emsg "Failed to split \"${FILE}\""
+			emsg "Failed to split \"${FILE}\"\n"
 			echo "${FILE}" >> "${FAILED}"
 			NUM_FAILED=$((${NUM_FAILED} + 1))
 		fi
@@ -567,11 +567,11 @@ split_collection () {
 	done
 
 	if [ ${NUM_FAILED} -ne 0 ]; then
-		emsg "${NUM_FAILED} file(s) failed to split (already splited?):"
-		$msg "${cR}"
+		emsg "${NUM_FAILED} file(s) failed to split (already split?):\n"
+		$msg "${cR}\n"
 		sort "${FAILED}" -o "${FAILED}"
 		cat "${FAILED}"
-		emsg "\nThese files are also listed in ${FAILED}."
+		emsg "\nThese files are also listed in ${FAILED}.\n"
 		return 1
 	fi
 
@@ -586,22 +586,22 @@ split_dir () {
 
 if [ -d "${INPATH}" ]; then
 	if [ ! -x "${INPATH}" ]; then
-		emsg "Directory \"${INPATH}\" is not accessible"
+		emsg "Directory \"${INPATH}\" is not accessible\n"
 		exit 2
 	fi
-	$msg "${cG}Input dir     :$cZ ${INPATH}$cZ\n"
+	$msg "${cG}Input dir     :$cZ ${INPATH}$cZ\n\n"
 	split_dir "${INPATH}"
 elif [ "${INPATH}" ]; then
 	split_file "${INPATH}"
 else
-	emsg "No input filename given. Use -h for help."
+	emsg "No input filename given. Use -h for help.\n"
 	exit 1
 fi
 
 # exit code of split_dir or split_file
 STATUS=$?
 
-$msg "\n${cP}Finished$cZ"
+$msg "\n${cP}Finished$cZ\n"
 
 if [ ${STATUS} -ne 0 ]; then
 	exit 3
