@@ -26,6 +26,7 @@
 # CONVERT: flac, faac, libmp4v2, id3lib, lame, vorbis-tools
 # ART:     ImageMagick
 # CHARSET: iconv
+# GAIN:    flac, aacgain, mp3gain, vorbisgain
 
 # Exit codes:
 # 0 - success
@@ -44,6 +45,7 @@ NOPIC=0
 REMOVE=0
 NOCOLORS=0
 PIC_SIZE="192x192"
+REPLAY_GAIN=0
 FORMAT="${0##*split2}"
 FORMAT="${FORMAT%.sh}"
 DIR="."
@@ -79,6 +81,8 @@ Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIO
          \$cG-F\$cZ                    - force deletion without asking
          \$cG-colors\$cZ             \$cR*\$cZ - colorized output (default)
          \$cG-nocolors\$cZ           \$cR*\$cZ - turn off colors
+         \$cG-g\$cZ                  \$cR*\$cZ - adjust audio gain
+         \$cG-ng\$cZ                 \$cR*\$cZ - do not adjust audio gain (default)
          \$cG-s\$cZ                    - save configuration to \$cP\"\${CONFIG}\"\$cZ
          \$cG-h\$cZ                    - print this message
          \$cG-v\$cZ                    - print version
@@ -134,6 +138,8 @@ while [ "$1" ]; do
 		-F)			 FORCE=1;;
 		-colors)	 NOCOLORS=0; update_colors;;
 		-nocolors)	 NOCOLORS=1; update_colors;;
+		-g)			 REPLAY_GAIN=1;;
+		-ng)		 REPLAY_GAIN=0;;
 		-s)			 SAVE=1;;
 		-h|--help|-help) eval "$msg \"${HELP}\""; exit 0;;
 		-v|--version)	 $msg "split2${FORMAT} version: ${VERSION}\n"; exit 0;;
@@ -162,6 +168,7 @@ if [ ${SAVE} -eq 1 ]; then
 	echo "REMOVE=${REMOVE}" >> "${CONFIG}"
 	echo "PIC_SIZE=${PIC_SIZE}" >> "${CONFIG}"
 	echo "NOCOLORS=${NOCOLORS}" >> "${CONFIG}"
+	echo "REPLAY_GAIN=${REPLAY_GAIN}" >> "${CONFIG}"
 	$msg "${cP}Configuration saved$cZ\n"
 fi
 
@@ -365,11 +372,11 @@ split_file () {
 		fi
 
 		case ${FORMAT} in
-			flac) ENC="flac flac -8 - -o %f";;
-			m4a)  ENC="cust ext=m4a faac -q 500 -o %f -";;
-			mp3)  ENC="cust ext=mp3 lame --preset extreme - %f";;
-			ogg)  ENC="cust ext=ogg oggenc -q 10 - -o %f";;
-			wav)  ENC="wav";;
+			flac) ENC="flac flac -8 - -o %f"; RG="metaflac --add-replay-gain";;
+			m4a)  ENC="cust ext=m4a faac -q 500 -o %f -"; RG="aacgain";;
+			mp3)  ENC="cust ext=mp3 lame --preset extreme - %f"; RG="mp3gain";;
+			ogg)  ENC="cust ext=ogg oggenc -q 10 - -o %f"; RG="vorbisgain -a";;
+			wav)  ENC="wav"; REPLAY_GAIN=0;;
 			*)	  emsg "Unknown output format ${FORMAT}\n"; exit 1;;
 		esac
 
@@ -529,6 +536,20 @@ split_file () {
 
 		i=$(($i + 1))
 	done
+
+	# adjust gain
+	if [ ${REPLAY_GAIN} -ne 0 ]; then
+		$msg "\n${cP}Adjusting gain$cZ\n"
+
+		if [ ${DRY} -ne 1 ]; then
+			${RG} "${OUT}/"*.${FORMAT} >/dev/null
+		fi
+
+		if [ $? -ne 0 ]; then
+			emsg "Failed to adjust gain for track\n"
+			return 1
+		fi
+	fi
 
 	rm -f "${TMPPIC}"
 	rm -f "${TMPCUE}"
