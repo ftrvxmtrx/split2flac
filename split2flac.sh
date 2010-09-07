@@ -54,6 +54,7 @@ DIR="."
 eval $(cat "${CONFIG}" 2>/dev/null)
 DRY=0
 SAVE=0
+NASK=0
 unset PIC INPATH CUE CHARSET
 FORCE=0
 
@@ -68,6 +69,7 @@ Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIO
          \$cG-o \${cU}DIRECTORY\$cZ        \$cR*\$cZ - set output directory (current is \$cP\${DIR}\$cZ)
          \$cG-cue \${cU}FILE\$cZ             - use file as a cue sheet (does not work with \${cU}DIR\$cZ)
          \$cG-cuecharset \${cU}CHARSET\$cZ   - convert cue sheet from CHARSET to UTF-8 (no conversion by default)
+         \$cG-nask\$cZ                 - do not ask to enter proper charset of a cue sheet (default is to ask)
          \$cG-f \${cU}FORMAT\$cZ             - use specified output format \$cP(current is \${FORMAT})\$cZ
          \$cG-c \${cU}FILE\$cZ             \$cR*\$cZ - use file as a cover image (does not work with \${cU}DIR\$cZ)
          \$cG-nc                 \${cR}*\$cZ - do not set any cover images
@@ -124,6 +126,7 @@ while [ "$1" ]; do
 		-o)			 DIR=$2; shift;;
 		-cue)		 CUE=$2; shift;;
 		-cuecharset) CHARSET=$2; shift;;
+		-nask)		 NASK=1;;
 		-f)			 FORMAT=$2; shift;;
 		-c)			 NOPIC=0; PIC=$2; shift;;
 		-nc)		 NOPIC=1;;
@@ -211,9 +214,7 @@ split_file () {
 				CUESHEET=$(${METAFLAC} --show-tag=CUESHEET "${FILE}" 2>/dev/null | sed 's/^cuesheet=//;s/^CUESHEET=//')
 
 				# try WV internal cue sheet
-				if [ -z "${CUESHEET}" ]; then
-					CUESHEET=$(wvunpack -q -c "${FILE}" 2>/dev/null)
-				fi
+				[ -z "${CUESHEET}" ] && CUESHEET=$(wvunpack -q -c "${FILE}" 2>/dev/null)
 
 				# try APE internal cue sheet (omfg!)
 				if [ -z "${CUESHEET}" ]; then
@@ -223,9 +224,7 @@ split_file () {
 						tail -c ${LENGTH} "$1" | grep -a CUESHEET >/dev/null 2>&1
 						if [ $? -eq 0 ]; then
 							CUESHEET=$(tail -c ${LENGTH} "$1" | sed 's/.*CUESHEET.//g' 2>/dev/null)
-							if [ $? -ne 0 ]; then
-								CUESHEET=""
-							fi
+							[ $? -ne 0 ] && CUESHEET=""
 						fi
 					fi
 				fi
@@ -252,13 +251,35 @@ split_file () {
 		return 1
 	fi
 
-	if [ "${CHARSET}" ]; then
-		$msg "${cG}Cue charset : $cP${CHARSET} -> utf-8$cZ\n"
-		CUESHEET=$(iconv -c -f "${CHARSET}" -t utf-8 "${CUE}" 2>/dev/null)
-		if [ $? -ne 0 ]; then
-			emsg "Unable to convert cue sheet from ${CHARSET} to utf-8\n"
-			return 1
+	# cue sheet charset
+	[ -z "${CHARSET}" ] && CHARSET="utf-8" || $msg "${cG}Cue charset : $cP${CHARSET} -> utf-8$cZ\n"
+
+	CUESHEET=$(iconv -f "${CHARSET}" -t utf-8 "${CUE}" 2>/dev/null)
+
+	if [ $? -ne 0 ]; then
+		[ "${CHARSET}" = "utf-8" ] \
+			&& emsg "Cue sheet is not utf-8\n" \
+			|| emsg "Unable to convert cue sheet from ${CHARSET} to utf-8\n"
+
+		if [ ${NASK} -eq 0 ]; then
+			while [ 1 ]; do
+				echo -n "Please enter the charset (or just press ENTER to ignore) > "
+				read CHARSET
+
+				[ -z "${CHARSET}" ] && break
+				$msg "${cG}Converted cue sheet:$cZ\n"
+				iconv -f "${CHARSET}" -t utf-8 "${CUE}" || continue
+
+				echo -n "Is this right? [Y/n] > "
+				read YEP
+				[ -z "${YEP}" -o "${YEP}" = "y" -o "${YEP}" = "Y" ] && break
+			done
+
+			CUESHEET=$(iconv -f "${CHARSET}" -t utf-8 "${CUE}" 2>/dev/null)
 		fi
+	fi
+
+	if [ "${CHARSET}" -a "${CHARSET}" != "utf-8" ]; then
 		CUE="${TMPCUE}"
 		echo "${CUESHEET}" > "${CUE}"
 
@@ -299,11 +320,9 @@ split_file () {
 	# file removal warning
 	if [ ${REMOVE} -eq 1 ]; then
 		msg_removal="\n${cR}Also remove original"
-		if [ ${FORCE} -eq 1 ]; then
-			$msg "$msg_removal (WITHOUT ASKING)$cZ\n"
-		else
-			$msg "$msg_removal if user says 'y'$cZ\n"
-		fi
+		[ ${FORCE} -eq 1 ] \
+			&& $msg "$msg_removal (WITHOUT ASKING)$cZ\n" \
+			|| $msg "$msg_removal if user says 'y'$cZ\n"
 	fi
 
 	# get common tags
@@ -328,19 +347,13 @@ split_file () {
 	unset TAG_DATE
 
 	if [ "${YEAR}" ]; then
-		if [ ${YEAR} -ne 0 ]; then
-			TAG_DATE="${YEAR}"
-		fi
+		[ ${YEAR} -ne 0 ] && TAG_DATE="${YEAR}"
 	fi
 
 	$msg "\n${cG}Artist :$cZ ${TAG_ARTIST}\n"
 	$msg "${cG}Album  :$cZ ${TAG_ALBUM}\n"
-	if [ "${TAG_GENRE}" ]; then
-		$msg "${cG}Genre  :$cZ ${TAG_GENRE}\n"
-	fi
-	if [ "${TAG_DATE}" ]; then
-		$msg "${cG}Year   :$cZ ${TAG_DATE}\n"
-	fi
+	[ "${TAG_GENRE}" ] && $msg "${cG}Genre  :$cZ ${TAG_GENRE}\n"
+	[ "${TAG_DATE}"  ] && $msg "${cG}Year   :$cZ ${TAG_DATE}\n"
 	$msg "${cG}Tracks :$cZ ${TRACKS_NUM}\n\n"
 
 	# prepare output directory
@@ -350,13 +363,9 @@ split_file () {
 		DIR_ARTIST=$(echo ${TAG_ARTIST} | ${VALIDATE})
 		DIR_ALBUM=$(echo ${TAG_ALBUM} | ${VALIDATE})
 
-		if [ "${TAG_DATE}" ]; then
-			DIR_ALBUM="${TAG_DATE} - ${DIR_ALBUM}"
-		fi
+		[ "${TAG_DATE}" ] && DIR_ALBUM="${TAG_DATE} - ${DIR_ALBUM}"
+		[ ${DRY} -ne 1 ] && mkdir -p "${OUT}/${DIR_ARTIST}"
 
-		if [ ${DRY} -ne 1 ]; then
-			mkdir -p "${OUT}/${DIR_ARTIST}"
-		fi
 		OUT="${OUT}/${DIR_ARTIST}/${DIR_ALBUM}"
 	fi
 
@@ -544,11 +553,11 @@ split_file () {
 
 		if [ ${DRY} -ne 1 ]; then
 			${RG} "${OUT}/"*.${FORMAT} >/dev/null
-		fi
 
-		if [ $? -ne 0 ]; then
-			emsg "Failed to adjust gain for track\n"
-			return 1
+			if [ $? -ne 0 ]; then
+				emsg "Failed to adjust gain for track\n"
+				return 1
+			fi
 		fi
 	fi
 
@@ -559,22 +568,29 @@ split_file () {
 		YEP="n"
 
 		if [ ${FORCE} -ne 1 ]; then
-			echo -n "Are you sure you want to delete original? [y] >"
+			echo -n "Are you sure you want to delete original? [y/N] > "
 			read YEP
 		fi
 
-		if [ "${YEP}" = "y" -o ${FORCE} -eq 1 ]; then
-			rm -f "${FILE}"
-		fi
+		[ "${YEP}" = "y" -o "${YEP}" = "Y" -o ${FORCE} -eq 1 ] && rm -f "${FILE}"
 	fi
 
 	return 0
 }
 
+# searches for files in a directory and splits them
 split_collection () {
+	rm -f "${FAILED}"
 	NUM_FAILED=0
+	OLDIFS=${IFS}
+	OLDCHARSET="${CHARSET}"
+	# set IFS to newline. we do not use 'read' here because we may want to ask user for input
+	IFS="
+"
 
-	while read -r FILE; do
+	for FILE in `find "$1" -iname '*.flac' -o -iname '*.ape' -o -iname '*.wv'`; do
+		IFS=${OLDIFS}
+		CHARSET=${OLDCHARSET}
 		$msg "$cG>> $cC\"${FILE}\"$cZ\n"
 		unset PIC CUE
 		split_file "${FILE}"
@@ -600,19 +616,13 @@ split_collection () {
 	return 0
 }
 
-# searches for files in a directory and splits them
-split_dir () {
-	rm -f "${FAILED}"
-	find "$1" -iname '*.flac' -o -iname '*.ape' -o -iname '*.wv' | split_collection
-}
-
 if [ -d "${INPATH}" ]; then
 	if [ ! -x "${INPATH}" ]; then
 		emsg "Directory \"${INPATH}\" is not accessible\n"
 		exit 2
 	fi
 	$msg "${cG}Input dir     :$cZ ${INPATH}$cZ\n\n"
-	split_dir "${INPATH}"
+	split_collection "${INPATH}"
 elif [ "${INPATH}" ]; then
 	split_file "${INPATH}"
 else
@@ -620,11 +630,9 @@ else
 	exit 1
 fi
 
-# exit code of split_dir or split_file
+# exit code of split_collection or split_file
 STATUS=$?
 
 $msg "\n${cP}Finished$cZ\n"
 
-if [ ${STATUS} -ne 0 ]; then
-	exit 3
-fi
+[ ${STATUS} -ne 0 ] && exit 3
