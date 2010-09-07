@@ -363,7 +363,8 @@ split_file () {
 	$msg "${cP}Saving tracks to $cZ\"${OUT}\"\n"
 
 	if [ ${DRY} -ne 1 ]; then
-		# create output dir
+		# remove if empty and create output dir
+		rmdir "${OUT}" 2>/dev/null
 		mkdir "${OUT}"
 
 		if [ $? -ne 0 -a ${NOSUBDIRS} -ne 1 ]; then
