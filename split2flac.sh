@@ -50,6 +50,13 @@ FORMAT="${0##*split2}"
 FORMAT="${FORMAT%.sh}"
 DIR="."
 
+# codecs default arguments
+ENCARGS_flac="-8"
+ENCARGS_m4a="-q 500"
+ENCARGS_mp3="--preset extreme"
+ENCARGS_ogg="-q 10"
+ENCARGS_wav=""
+
 # load settings
 eval $(cat "${CONFIG}" 2>/dev/null)
 DRY=0
@@ -57,6 +64,8 @@ SAVE=0
 NASK=0
 unset PIC INPATH CUE CHARSET
 FORCE=0
+e="\${ENCARGS_${FORMAT}}"
+ENCARGS=`eval echo "$e"`
 
 VERSION=unknown
 
@@ -71,6 +80,7 @@ Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIO
          \$cG-cuecharset \${cU}CHARSET\$cZ   - convert cue sheet from CHARSET to UTF-8 (no conversion by default)
          \$cG-nask\$cZ                 - do not ask to enter proper charset of a cue sheet (default is to ask)
          \$cG-f \${cU}FORMAT\$cZ             - use specified output format \$cP(current is \${FORMAT})\$cZ
+         \$cG-e \${cU}'ARG1 ARG2'\$cZ      \$cR*\$cZ - encoder arguments \$cP(current is '\${ENCARGS}')\$cZ
          \$cG-c \${cU}FILE\$cZ             \$cR*\$cZ - use file as a cover image (does not work with \${cU}DIR\$cZ)
          \$cG-nc                 \${cR}*\$cZ - do not set any cover images
          \$cG-cs \${cU}WxH\$cZ             \$cR*\$cZ - set cover image size \$cP(current is \${PIC_SIZE})\$cZ
@@ -128,6 +138,7 @@ while [ "$1" ]; do
 		-cuecharset) CHARSET=$2; shift;;
 		-nask)		 NASK=1;;
 		-f)			 FORMAT=$2; shift;;
+		-e)			 ENCARGS=$2; shift;;
 		-c)			 NOPIC=0; PIC=$2; shift;;
 		-nc)		 NOPIC=1;;
 		-cs)		 PIC_SIZE=$2; shift;;
@@ -162,6 +173,8 @@ while [ "$1" ]; do
 	shift
 done
 
+eval "export ENCARGS_${FORMAT}=\"${ENCARGS}\""
+
 # save configuration if needed
 if [ ${SAVE} -eq 1 ]; then
 	echo "DIR=\"${DIR}\"" > "${CONFIG}"
@@ -172,6 +185,11 @@ if [ ${SAVE} -eq 1 ]; then
 	echo "PIC_SIZE=${PIC_SIZE}" >> "${CONFIG}"
 	echo "NOCOLORS=${NOCOLORS}" >> "${CONFIG}"
 	echo "REPLAY_GAIN=${REPLAY_GAIN}" >> "${CONFIG}"
+	echo "ENCARGS_flac=\"${ENCARGS_flac}\"" >> "${CONFIG}"
+	echo "ENCARGS_m4a=\"${ENCARGS_m4a}\"" >> "${CONFIG}"
+	echo "ENCARGS_mp3=\"${ENCARGS_mp3}\"" >> "${CONFIG}"
+	echo "ENCARGS_ogg=\"${ENCARGS_ogg}\"" >> "${CONFIG}"
+	echo "ENCARGS_wav=\"${ENCARGS_wav}\"" >> "${CONFIG}"
 	$msg "${cP}Configuration saved$cZ\n"
 fi
 
@@ -193,6 +211,7 @@ case ${FORMAT} in
 	*)	  emsg "Unknown output format \"${FORMAT}\"\n"; exit 1;;
 esac
 
+$msg " (${ENCARGS})"
 $msg "\n${cG}Output dir    :$cZ ${DIR:?Output directory was not set}\n"
 
 # splits a file
@@ -382,11 +401,11 @@ split_file () {
 		fi
 
 		case ${FORMAT} in
-			flac) ENC="flac flac -8 - -o %f"; RG="metaflac --add-replay-gain";;
-			m4a)  ENC="cust ext=m4a faac -q 500 -o %f -"; RG="aacgain";;
-			mp3)  ENC="cust ext=mp3 lame --preset extreme - %f"; RG="mp3gain";;
-			ogg)  ENC="cust ext=ogg oggenc -q 10 - -o %f"; RG="vorbisgain -a";;
-			wav)  ENC="wav"; REPLAY_GAIN=0;;
+			flac) ENC="flac flac ${ENCARGS} - -o %f"; RG="metaflac --add-replay-gain";;
+			m4a)  ENC="cust ext=m4a faac ${ENCARGS} -o %f -"; RG="aacgain";;
+			mp3)  ENC="cust ext=mp3 lame ${ENCARGS} - %f"; RG="mp3gain";;
+			ogg)  ENC="cust ext=ogg oggenc ${ENCARGS} - -o %f"; RG="vorbisgain -a";;
+			wav)  ENC="wav ${ENCARGS}"; REPLAY_GAIN=0;;
 			*)	  emsg "Unknown output format ${FORMAT}\n"; exit 1;;
 		esac
 
