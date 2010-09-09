@@ -40,7 +40,6 @@ TMPPIC="${HOME}/.split2flac_cover.jpg"
 FAILED="split_failed.txt"
 
 NOSUBDIRS=0
-NORENAME=0
 NOPIC=0
 REMOVE=0
 NOCOLORS=0
@@ -49,6 +48,7 @@ REPLAY_GAIN=0
 FORMAT="${0##*split2}"
 FORMAT="${FORMAT%.sh}"
 DIR="."
+OUTPATTERN="@artist/{@year - }@album/@track - @title.@ext"
 
 # codecs default arguments
 ENCARGS_flac="-8"
@@ -77,19 +77,18 @@ Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIO
        \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}DIR\$cZ  [\${cU}OPTIONS\$cZ]\$cZ
          \$cG-p\$cZ                    - dry run
          \$cG-o \${cU}DIRECTORY\$cZ        \$cR*\$cZ - set output directory (current is \$cP\${DIR}\$cZ)
+         \$cG-of \${cU}'PATTERN'\$cZ       \$cR*\$cZ - use specific output naming pattern (current is \$cP'\${OUTPATTERN}'\$cZ)
          \$cG-cue \${cU}FILE\$cZ             - use file as a cue sheet (does not work with \${cU}DIR\$cZ)
          \$cG-cuecharset \${cU}CHARSET\$cZ   - convert cue sheet from CHARSET to UTF-8 (no conversion by default)
          \$cG-nask\$cZ                 - do not ask to enter proper charset of a cue sheet (default is to ask)
-         \$cG-f \${cU}FORMAT\$cZ             - use specified output format \$cP(current is \${FORMAT})\$cZ
-         \$cG-e \${cU}'ARG1 ARG2'\$cZ      \$cR*\$cZ - encoder arguments \$cP(current is '\${ENCARGS}')\$cZ
+         \$cG-f \${cU}FORMAT\$cZ             - use specific output format (current is \$cP\${FORMAT}\$cZ)
+         \$cG-e \${cU}'ARG1 ARG2'\$cZ      \$cR*\$cZ - encoder arguments (current is \$cP'\${ENCARGS}'\$cZ)
          \$cG-eh\$cZ                   - show help for current encoder and exit\$cZ
          \$cG-c \${cU}FILE\$cZ             \$cR*\$cZ - use file as a cover image (does not work with \${cU}DIR\$cZ)
          \$cG-nc                 \${cR}*\$cZ - do not set any cover images
-         \$cG-cs \${cU}WxH\$cZ             \$cR*\$cZ - set cover image size \$cP(current is \${PIC_SIZE})\$cZ
+         \$cG-cs \${cU}WxH\$cZ             \$cR*\$cZ - set cover image size (current is \$cP\${PIC_SIZE}\$cZ)
          \$cG-d                  \$cR*\$cZ - create artist/album subdirs (default)
          \$cG-nd                 \$cR*\$cZ - do not create any subdirs
-         \$cG-r                  \$cR*\$cZ - rename tracks to include title (default)
-         \$cG-nr                 \$cR*\$cZ - do not rename tracks (numbers only, e.g. '01.\${FORMAT}')
          \$cG-D                  \$cR*\$cZ - delete original file
          \$cG-nD                 \$cR*\$cZ - do not remove the original (default)
          \$cG-F\$cZ                    - force deletion without asking
@@ -136,6 +135,7 @@ update_colors
 while [ "$1" ]; do
 	case "$1" in
 		-o)			 DIR=$2; shift;;
+		-of)		 OUTPATTERN=$2; shift;;
 		-cue)		 CUE=$2; shift;;
 		-cuecharset) CHARSET=$2; shift;;
 		-nask)		 NASK=1;;
@@ -147,8 +147,6 @@ while [ "$1" ]; do
 		-cs)		 PIC_SIZE=$2; shift;;
 		-d)			 NOSUBDIRS=0;;
 		-nd)		 NOSUBDIRS=1;;
-		-r)			 NORENAME=0;;
-		-nr)		 NORENAME=1;;
 		-p)			 DRY=1;;
 		-D)			 REMOVE=1;;
 		-nD)		 REMOVE=0;;
@@ -181,8 +179,8 @@ eval "export ENCARGS_${FORMAT}=\"${ENCARGS}\""
 # save configuration if needed
 if [ ${SAVE} -eq 1 ]; then
 	echo "DIR=\"${DIR}\"" > "${CONFIG}"
+	echo "OUTPATTERN=\"${OUTPATTERN}\"" >> "${CONFIG}"
 	echo "NOSUBDIRS=${NOSUBDIRS}" >> "${CONFIG}"
-	echo "NORENAME=${NORENAME}" >> "${CONFIG}"
 	echo "NOPIC=${NOPIC}" >> "${CONFIG}"
 	echo "REMOVE=${REMOVE}" >> "${CONFIG}"
 	echo "PIC_SIZE=${PIC_SIZE}" >> "${CONFIG}"
@@ -222,6 +220,13 @@ if [ ${ENCHELP} -eq 1 ]; then
 fi
 
 $msg "${cG}Output dir    :$cZ ${DIR:?Output directory was not set}\n"
+
+# replaces a tag name with the value of the tag. $1=pattern $2=tag_name $3=tag_value
+update_pattern () {
+	echo "$1" | { [ "$3" ] \
+		&& sed "s/[{]@$2\([^}]*\)[}]/$3\1/g;s/@$2/$3/g" \
+		|| sed "s/[{]@$2\([^}]*\)[}]//g;s/@$2//g"; }
+}
 
 # splits a file
 split_file () {
@@ -384,29 +389,35 @@ split_file () {
 	[ "${TAG_DATE}"  ] && $msg "${cG}Year   :$cZ ${TAG_DATE}\n"
 	$msg "${cG}Tracks :$cZ ${TRACKS_NUM}\n\n"
 
-	# prepare output directory
+	# those tags won't change, so update the pattern now
+	DIR_ARTIST=$(echo ${TAG_ARTIST} | ${VALIDATE})
+	DIR_ALBUM=$(echo ${TAG_ALBUM} | ${VALIDATE})
+	PATTERN=$(update_pattern "${OUTPATTERN}" "artist" "${DIR_ARTIST}")
+	PATTERN=$(update_pattern "${PATTERN}" "album" "${DIR_ALBUM}")
+	PATTERN=$(update_pattern "${PATTERN}" "year" "${TAG_DATE}")
+	PATTERN=$(update_pattern "${PATTERN}" "ext" "${FORMAT}")
+
+	# construct output directory name
 	OUT="${DIR}"
 
-	if [ ${NOSUBDIRS} -ne 1 ]; then
-		DIR_ARTIST=$(echo ${TAG_ARTIST} | ${VALIDATE})
-		DIR_ALBUM=$(echo ${TAG_ALBUM} | ${VALIDATE})
-
-		[ "${TAG_DATE}" ] && DIR_ALBUM="${TAG_DATE} - ${DIR_ALBUM}"
-		[ ${DRY} -ne 1 ] && mkdir -p "${OUT}/${DIR_ARTIST}"
-
-		OUT="${OUT}/${DIR_ARTIST}/${DIR_ALBUM}"
+	if [ ${NOSUBDIRS} -eq 0 ]; then
+		# add path from the pattern
+		path=$(dirname "${PATTERN}")
+		[ "${path}" != "${PATTERN}" ] && OUT="${OUT}/${path}"
 	fi
+
+	# remove path from the pattern
+	PATTERN=$(basename "${PATTERN}")
 
 	$msg "${cP}Saving tracks to $cZ\"${OUT}\"\n"
 
+	# split to tracks
 	if [ ${DRY} -ne 1 ]; then
 		# remove if empty and create output dir
-		rmdir "${OUT}" 2>/dev/null
-		mkdir "${OUT}"
-
-		if [ $? -ne 0 -a ${NOSUBDIRS} -ne 1 ]; then
-			emsg "Failed to create output directory (already split?)\n"
-			return 1
+		if [ ${NOSUBDIRS} -eq 0 ]; then
+			rmdir "${OUT}" 2>/dev/null
+			mkdir "${OUT}"
+			[ $? -ne 0 ] && { emsg "Failed to create output directory (already split?)\n"; return 1; }
 		fi
 
 		case ${FORMAT} in
@@ -450,17 +461,15 @@ split_file () {
 
 		$msg "$i: $cG${TAG_TITLE}$cZ\n"
 
-		if [ ${NORENAME} -ne 1 ]; then
-			FINAL="${OUT}/${FILE_TRACK} - ${FILE_TITLE}.${FORMAT}"
-			if [ ${DRY} -ne 1 ]; then
-				mv "$f" "${FINAL}"
-				if [ $? -ne 0 ]; then
-					emsg "Failed to rename track file\n"
-					return 1
-				fi
+		FINAL=$(update_pattern "${OUT}/${PATTERN}" "title" "${FILE_TITLE}")
+		FINAL=$(update_pattern "${FINAL}" "track" "${FILE_TRACK}")
+
+		if [ ${DRY} -ne 1 ]; then
+			mv "$f" "${FINAL}"
+			if [ $? -ne 0 ]; then
+				emsg "Failed to rename track file\n"
+				return 1
 			fi
-		else
-			FINAL="$f"
 		fi
 
 		if [ ${DRY} -ne 1 ]; then
@@ -474,20 +483,9 @@ split_file () {
 						"${FINAL}" >/dev/null
 					RES=$?
 
-					if [ "${TAG_GENRE}" ]; then
-						${METAFLAC} --set-tag="GENRE=${TAG_GENRE}" "${FINAL}" >/dev/null
-						RES=$RES$?
-					fi
-
-					if [ "${TAG_DATE}" ]; then
-						${METAFLAC} --set-tag="DATE=${TAG_DATE}" "${FINAL}" >/dev/null
-						RES=$RES$?
-					fi
-
-					if [ "${PIC}" ]; then
-						${METAFLAC} --import-picture-from="${PIC}" "${FINAL}" >/dev/null
-						RES=$RES$?
-					fi
+					[ "${TAG_GENRE}" ] && { ${METAFLAC} --set-tag="GENRE=${TAG_GENRE}" "${FINAL}" >/dev/null; RES=$RES$?; }
+					[ "${TAG_DATE}" ] && { ${METAFLAC} --set-tag="DATE=${TAG_DATE}" "${FINAL}" >/dev/null; RES=$RES$?; }
+					[ "${PIC}" ] && { ${METAFLAC} --import-picture-from="${PIC}" "${FINAL}" >/dev/null; RES=$RES$?; }
 					;;
 
 				mp3)
@@ -499,15 +497,8 @@ split_file () {
 						"${FINAL}" >/dev/null
 					RES=$?
 
-					if [ "${TAG_GENRE}" ]; then
-						${ID3TAG} -g"${TAG_GENRE}" "${FINAL}" >/dev/null
-						RES=$RES$?
-					fi
-
-					if [ "${TAG_DATE}" ]; then
-						${ID3TAG} -y"${TAG_DATE}" "${FINAL}" >/dev/null
-						RES=$RES$?
-					fi
+					[ "${TAG_GENRE}" ] && { ${ID3TAG} -g"${TAG_GENRE}" "${FINAL}" >/dev/null; RES=$RES$?; }
+					[ "${TAG_DATE}" ] && { ${ID3TAG} -y"${TAG_DATE}" "${FINAL}" >/dev/null; RES=$RES$?; }
 					;;
 
 				ogg)
@@ -518,15 +509,8 @@ split_file () {
 						-t "TRACKNUMBER=$i" >/dev/null
 					RES=$?
 
-					if [ "${TAG_GENRE}" ]; then
-						${VORBISCOMMENT} "${FINAL}" -t "GENRE=${TAG_GENRE}" >/dev/null
-						RES=$RES$?
-					fi
-
-					if [ "${TAG_DATE}" ]; then
-						${VORBISCOMMENT} "${FINAL}" -t "DATE=${TAG_DATE}" >/dev/null
-						RES=$RES$?
-					fi
+					[ "${TAG_GENRE}" ] && { ${VORBISCOMMENT} "${FINAL}" -t "GENRE=${TAG_GENRE}" >/dev/null; RES=$RES$?; }
+					[ "${TAG_DATE}" ] && { ${VORBISCOMMENT} "${FINAL}" -t "DATE=${TAG_DATE}" >/dev/null; RES=$RES$?; }
 					;;
 
 				m4a)
@@ -538,20 +522,9 @@ split_file () {
 						-T "${TRACKS_NUM}" >/dev/null
 					RES=$?
 
-					if [ "${TAG_GENRE}" ]; then
-						${MP4TAGS} "${FINAL}" -g "${TAG_GENRE}" >/dev/null
-						RES=$RES$?
-					fi
-
-					if [ "${TAG_DATE}" ]; then
-						${MP4TAGS} "${FINAL}" -y "${TAG_DATE}" >/dev/null
-						RES=$RES$?
-					fi
-
-					if [ "${PIC}" ]; then
-						${MP4TAGS} "${FINAL}" -P "${PIC}" >/dev/null
-						RES=$RES$?
-					fi
+					[ "${TAG_GENRE}" ] && { ${MP4TAGS} "${FINAL}" -g "${TAG_GENRE}" >/dev/null; RES=$RES$?; }
+					[ "${TAG_DATE}" ] && { ${MP4TAGS} "${FINAL}" -y "${TAG_DATE}" >/dev/null; RES=$RES$?; }
+					[ "${PIC}" ] && { ${MP4TAGS} "${FINAL}" -P "${PIC}" >/dev/null; RES=$RES$?; }
 					;;
 
 				wav)
