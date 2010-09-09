@@ -66,6 +66,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 e="\${ENCARGS_${FORMAT}}"
 ENCARGS=`eval echo "$e"`
+ENCHELP=0
 
 VERSION=unknown
 
@@ -81,6 +82,7 @@ Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIO
          \$cG-nask\$cZ                 - do not ask to enter proper charset of a cue sheet (default is to ask)
          \$cG-f \${cU}FORMAT\$cZ             - use specified output format \$cP(current is \${FORMAT})\$cZ
          \$cG-e \${cU}'ARG1 ARG2'\$cZ      \$cR*\$cZ - encoder arguments \$cP(current is '\${ENCARGS}')\$cZ
+         \$cG-eh\$cZ                   - show help for current encoder and exit\$cZ
          \$cG-c \${cU}FILE\$cZ             \$cR*\$cZ - use file as a cover image (does not work with \${cU}DIR\$cZ)
          \$cG-nc                 \${cR}*\$cZ - do not set any cover images
          \$cG-cs \${cU}WxH\$cZ             \$cR*\$cZ - set cover image size \$cP(current is \${PIC_SIZE})\$cZ
@@ -139,6 +141,7 @@ while [ "$1" ]; do
 		-nask)		 NASK=1;;
 		-f)			 FORMAT=$2; shift;;
 		-e)			 ENCARGS=$2; shift;;
+		-eh)		 ENCHELP=1;;
 		-c)			 NOPIC=0; PIC=$2; shift;;
 		-nc)		 NOPIC=1;;
 		-cs)		 PIC_SIZE=$2; shift;;
@@ -203,16 +206,22 @@ VALIDATE="sed s/[^-[:space:][:alnum:]&_#,.'\"\(\)!?]//g"
 # check & print output format
 msg_format="${cG}Output format :$cZ"
 case ${FORMAT} in
-	flac) $msg "$msg_format FLAC";;
-	m4a)  $msg "$msg_format M4A";;
-	mp3)  $msg "$msg_format MP3";;
-	ogg)  $msg "$msg_format OGG VORBIS";;
-	wav)  $msg "$msg_format WAVE";;
+	flac) $msg "$msg_format FLAC"; enc_help="flac --help";;
+	m4a)  $msg "$msg_format M4A"; enc_help="faac --help";;
+	mp3)  $msg "$msg_format MP3"; enc_help="lame --help";;
+	ogg)  $msg "$msg_format OGG VORBIS"; enc_help="oggenc --help";;
+	wav)  $msg "$msg_format WAVE"; enc_help="echo Sorry, no arguments available for this encoder";;
 	*)	  emsg "Unknown output format \"${FORMAT}\"\n"; exit 1;;
 esac
 
-$msg " (${ENCARGS})"
-$msg "\n${cG}Output dir    :$cZ ${DIR:?Output directory was not set}\n"
+$msg " (${ENCARGS})\n"
+
+if [ ${ENCHELP} -eq 1 ]; then
+	${enc_help}
+	exit 0
+fi
+
+$msg "${cG}Output dir    :$cZ ${DIR:?Output directory was not set}\n"
 
 # splits a file
 split_file () {
