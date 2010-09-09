@@ -103,6 +103,7 @@ Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIO
 \$cR*\$cZ - option affects configuration if \$cP'-s'\$cZ option passed.
 \${cP}NOTE: \$cG'-c some_file.jpg -s'\$cP only \${cU}allows\$cZ\$cP cover images, it doesn't set a default one.
 \${cZ}Supported \$cU\${cG}FORMATs\${cZ}: flac, m4a, mp3, ogg, wav.
+Supported tags for \$cU\${cG}PATTERN\${cZ}: @artist, @album, @year, @track, @title.
 
 It's better to pass \$cP'-p'\$cZ option to see what will happen when actually splitting tracks.
 You may want to pass \$cP'-s'\$cZ option for the first run to save default configuration
