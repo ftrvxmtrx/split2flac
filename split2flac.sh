@@ -417,8 +417,8 @@ split_file () {
 		# remove if empty and create output dir
 		if [ ${NOSUBDIRS} -eq 0 ]; then
 			rmdir "${OUT}" 2>/dev/null
-			mkdir "${OUT}"
-			[ $? -ne 0 ] && { emsg "Failed to create output directory (already split?)\n"; return 1; }
+			mkdir -p "${OUT}"
+			[ $? -ne 0 ] && { emsg "Failed to create output directory ${OUT} (already split?)\n"; return 1; }
 		fi
 
 		case ${FORMAT} in
