@@ -64,11 +64,9 @@ SAVE=0
 NASK=0
 unset PIC INPATH CUE CHARSET
 FORCE=0
-e="\${ENCARGS_${FORMAT}}"
-ENCARGS=`eval echo "$e"`
-ENCHELP=0
 
-VERSION=unknown
+# do not forget to update before commit
+VERSION=80
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -117,6 +115,12 @@ emsg () {
 	$msg "${cR}$1${cZ}"
 }
 
+update_encargs () {
+	e="\${ENCARGS_${FORMAT}}"
+	ENCARGS=`eval echo "$e"`
+	ENCHELP=0
+}
+
 update_colors () {
 	if [ "${NOCOLORS}" -eq 0 ]; then
 		cR="\033[31m"
@@ -130,6 +134,7 @@ update_colors () {
 	fi
 }
 
+update_encargs
 update_colors
 
 # parse arguments
@@ -140,7 +145,7 @@ while [ "$1" ]; do
 		-cue)		 CUE=$2; shift;;
 		-cuecharset) CHARSET=$2; shift;;
 		-nask)		 NASK=1;;
-		-f)			 FORMAT=$2; shift;;
+		-f)			 FORMAT=$2; update_encargs; shift;;
 		-e)			 ENCARGS=$2; shift;;
 		-eh)		 ENCHELP=1;;
 		-c)			 NOPIC=0; PIC=$2; shift;;
