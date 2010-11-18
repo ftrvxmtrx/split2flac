@@ -465,7 +465,14 @@ split_file () {
 		FILE_TITLE=$(echo ${TAG_TITLE} | ${VALIDATE})
 		f="${OUT}/${FILE_TRACK}.${FORMAT}"
 
-		$msg "$i: $cG${TAG_TITLE}$cZ\n"
+		TAG_PERFORMER=$(cueprint -n $i -t %p "${CUE}" 2>/dev/null)
+
+		if [ "${TAG_PERFORMER}" -a "${TAG_PERFORMER}" != "${TAG_ARTIST}" ]; then
+			$msg "$i: $cG${TAG_PERFORMER} - ${TAG_TITLE}$cZ\n"
+		else
+			TAG_PERFORMER="${TAG_ARTIST}"
+			$msg "$i: $cG${TAG_TITLE}$cZ\n"
+		fi
 
 		FINAL=$(update_pattern "${OUT}/${PATTERN}" "title" "${FILE_TITLE}")
 		FINAL=$(update_pattern "${FINAL}" "track" "${FILE_TRACK}")
@@ -482,7 +489,7 @@ split_file () {
 			case ${FORMAT} in
 				flac)
 					${METAFLAC} --remove-all-tags \
-						--set-tag="ARTIST=${TAG_ARTIST}" \
+						--set-tag="ARTIST=${TAG_PERFORMER}" \
 						--set-tag="ALBUM=${TAG_ALBUM}" \
 						--set-tag="TITLE=${TAG_TITLE}" \
 						--set-tag="TRACKNUMBER=$i" \
@@ -495,7 +502,7 @@ split_file () {
 					;;
 
 				mp3)
-					${ID3TAG} "-a${TAG_ARTIST}" \
+					${ID3TAG} "-a${TAG_PERFORMER}" \
 						"-A${TAG_ALBUM}" \
 						"-s${TAG_TITLE}" \
 						"-t$i" \
@@ -509,7 +516,7 @@ split_file () {
 
 				ogg)
 					${VORBISCOMMENT} "${FINAL}" \
-						-t "ARTIST=${TAG_ARTIST}" \
+						-t "ARTIST=${TAG_PERFORMER}" \
 						-t "ALBUM=${TAG_ALBUM}" \
 						-t "TITLE=${TAG_TITLE}" \
 						-t "TRACKNUMBER=$i" >/dev/null
@@ -521,7 +528,7 @@ split_file () {
 
 				m4a)
 					${MP4TAGS} "${FINAL}" \
-						-a "${TAG_ARTIST}" \
+						-a "${TAG_PERFORMER}" \
 						-A "${TAG_ALBUM}" \
 						-s "${TAG_TITLE}" \
 						-t "$i" \
