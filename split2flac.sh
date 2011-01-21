@@ -66,7 +66,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=82
+VERSION=83
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -205,7 +205,7 @@ VORBISCOMMENT="vorbiscomment -R -a"
 ID3TAG="id3tag -2"
 MP4TAGS="mp4tags"
 GETTAG="cueprint -n 1 -t"
-VALIDATE="sed s/[^-[:space:][:alnum:]&_#,.'\"\(\)!?]//g"
+VALIDATE="sed s/[\[\]^-[:space:][:alnum:]&_#,.'\"\(\)!?]//g"
 
 # check & print output format
 msg_format="${cG}Output format :$cZ"
