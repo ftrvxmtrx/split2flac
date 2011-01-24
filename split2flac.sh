@@ -66,7 +66,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=83
+VERSION=84
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -291,7 +291,7 @@ split_file () {
 	fi
 
 	# cue sheet charset
-	[ -z "${CHARSET}" ] && CHARSET="utf-8" || $msg "${cG}Cue charset : $cP${CHARSET} -> utf-8$cZ\n"
+	[ -z "${CHARSET}" ] && CHARSET="utf-8" || $msg "${cG}Cue charset   : $cP${CHARSET} -> utf-8$cZ\n"
 
 	CUESHEET=$(iconv -f "${CHARSET}" -t utf-8 "${CUE}" 2>/dev/null)
 
