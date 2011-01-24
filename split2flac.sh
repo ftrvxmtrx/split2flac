@@ -23,7 +23,7 @@
 # Dependencies:
 #          shntool, cuetools
 # SPLIT:   flac, wavpack, mac
-# CONVERT: flac, faac, libmp4v2, id3lib, lame, vorbis-tools
+# CONVERT: flac, faac, libmp4v2, id3lib/mutagen, lame, vorbis-tools
 # ART:     ImageMagick
 # CHARSET: iconv
 # GAIN:    flac, aacgain, mp3gain, vorbisgain
@@ -66,7 +66,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=84
+VERSION=85
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -202,7 +202,7 @@ fi
 
 METAFLAC="metaflac --no-utf8-convert"
 VORBISCOMMENT="vorbiscomment -R -a"
-ID3TAG="id3tag -2"
+which mid3v2 &>/dev/null && ID3TAG="mid3v2" || ID3TAG="id3tag -2"
 MP4TAGS="mp4tags"
 GETTAG="cueprint -n 1 -t"
 VALIDATE="sed s/[\[\]^-[:space:][:alnum:]&_#,.'\"\(\)!?]//g"
@@ -502,16 +502,15 @@ split_file () {
 					;;
 
 				mp3)
-					${ID3TAG} "-a${TAG_PERFORMER}" \
-						"-A${TAG_ALBUM}" \
-						"-s${TAG_TITLE}" \
-						"-t$i" \
-						"-T${TRACKS_NUM}" \
+					${ID3TAG} --artist="${TAG_PERFORMER}" \
+						--album="${TAG_ALBUM}" \
+						--song="${TAG_TITLE}" \
+						--track="$i" \
 						"${FINAL}" >/dev/null
 					RES=$?
 
-					[ "${TAG_GENRE}" ] && { ${ID3TAG} -g"${TAG_GENRE}" "${FINAL}" >/dev/null; RES=$RES$?; }
-					[ "${TAG_DATE}" ] && { ${ID3TAG} -y"${TAG_DATE}" "${FINAL}" >/dev/null; RES=$RES$?; }
+					[ "${TAG_GENRE}" ] && { ${ID3TAG} --genre="${TAG_GENRE}" "${FINAL}" >/dev/null; RES=$RES$?; }
+					[ "${TAG_DATE}" ] && { ${ID3TAG} --year="${TAG_DATE}" "${FINAL}" >/dev/null; RES=$RES$?; }
 					;;
 
 				ogg)
