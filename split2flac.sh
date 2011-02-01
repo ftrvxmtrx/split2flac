@@ -23,7 +23,7 @@
 # Dependencies:
 #          shntool, cuetools
 # SPLIT:   flac, wavpack, mac
-# CONVERT: flac, faac, libmp4v2, id3lib/mutagen, lame, vorbis-tools
+# CONVERT: flac/flake, faac, libmp4v2, id3lib/mutagen, lame, vorbis-tools
 # ART:     ImageMagick
 # CHARSET: iconv
 # GAIN:    flac, aacgain, mp3gain, vorbisgain
@@ -66,7 +66,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=89
+VERSION=90
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
