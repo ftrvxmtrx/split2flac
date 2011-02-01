@@ -66,7 +66,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=88
+VERSION=89
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -232,7 +232,7 @@ $msg "${cG}Output dir    :$cZ ${DIR:?Output directory was not set}\n"
 
 # replaces a tag name with the value of the tag. $1=pattern $2=tag_name $3=tag_value
 update_pattern () {
-	# replace '/' with '\'
+	# replace '/' with '\' and '&' with '\&' for proper sed call
 	tag_name=$(echo "$2" | sed 's,/,\\\\,g;s,&,\\&,g')
 	tag_value=$(echo "$3" | sed 's,/,\\\\,g;s,&,\\&,g')
 
