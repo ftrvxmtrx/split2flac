@@ -66,7 +66,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=87
+VERSION=88
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -200,6 +200,9 @@ if [ ${SAVE} -eq 1 ]; then
 	$msg "${cP}Configuration saved$cZ\n"
 fi
 
+# use flake if possible
+which flake &>/dev/null && FLAC_ENCODER="flake" || FLAC_ENCODER="flac"
+
 METAFLAC="metaflac --no-utf8-convert"
 VORBISCOMMENT="vorbiscomment -R -a"
 which mid3v2 &>/dev/null && ID3TAG="mid3v2" || ID3TAG="id3tag -2"
@@ -210,7 +213,7 @@ VALIDATE="sed s/[\[\]^-[:space:][:alnum:]&_#,.'\"\(\)!?]//g"
 # check & print output format
 msg_format="${cG}Output format :$cZ"
 case ${FORMAT} in
-	flac) $msg "$msg_format FLAC"; enc_help="flac --help";;
+	flac) $msg "$msg_format FLAC [using ${FLAC_ENCODER} tool]"; enc_help="${FLAC_ENCODER} -h";;
 	m4a)  $msg "$msg_format M4A"; enc_help="faac --help";;
 	mp3)  $msg "$msg_format MP3"; enc_help="lame --help";;
 	ogg)  $msg "$msg_format OGG VORBIS"; enc_help="oggenc --help";;
@@ -431,7 +434,7 @@ split_file () {
 		fi
 
 		case ${FORMAT} in
-			flac) ENC="flac flac ${ENCARGS} - -o %f"; RG="metaflac --add-replay-gain";;
+			flac) ENC="flac ${FLAC_ENCODER} ${ENCARGS} - -o %f"; RG="metaflac --add-replay-gain";;
 			m4a)  ENC="cust ext=m4a faac ${ENCARGS} -o %f -"; RG="aacgain";;
 			mp3)  ENC="cust ext=mp3 lame ${ENCARGS} - %f"; RG="mp3gain";;
 			ogg)  ENC="cust ext=ogg oggenc ${ENCARGS} - -o %f"; RG="vorbisgain -a";;
