@@ -66,7 +66,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=94
+VERSION=95
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -101,7 +101,7 @@ Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIO
 \$cR*\$cZ - option affects configuration if \$cP'-s'\$cZ option passed.
 \${cP}NOTE: \$cG'-c some_file.jpg -s'\$cP only \${cU}allows\$cZ\$cP cover images, it doesn't set a default one.
 \${cZ}Supported \$cU\${cG}FORMATs\${cZ}: flac, m4a, mp3, ogg, wav.
-Supported tags for \$cU\${cG}PATTERN\${cZ}: @artist, @album, @year, @track, @title.
+Supported tags for \$cU\${cG}PATTERN\${cZ}: @artist, @album, @year, @track, @title, @genre, @ext.
 
 It's better to pass \$cP'-p'\$cZ option to see what will happen when actually splitting tracks.
 You may want to pass \$cP'-s'\$cZ option for the first run to save default configuration
