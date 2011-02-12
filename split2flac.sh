@@ -66,7 +66,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=91
+VERSION=92
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -398,7 +398,7 @@ split_file () {
 	fi
 
 	TAG_GENRE=$(awk '{ if (/REM[ \t]+GENRE[ \t]+(.*)/) { print $0; exit } }' < "${CUE}")
-	TAG_GENRE=$(echo ${TAG_GENRE} | sed 's/REM[ \t]\+GENRE[ \t]\+//;s/"\(.*\)"/\1/')
+	TAG_GENRE=$(echo "${TAG_GENRE}" | sed 's/REM[ \t]\+GENRE[ \t]\+//;s/"\(.*\)"/\1/')
 
 	YEAR=$(awk '{ if (/REM[ \t]+DATE/) { printf "%i", $3; exit } }' < "${CUE}")
 	YEAR=$(echo ${YEAR} | tr -d -c '[:digit:]')
@@ -416,8 +416,8 @@ split_file () {
 	$msg "${cG}Tracks :$cZ ${TRACKS_NUM}\n\n"
 
 	# those tags won't change, so update the pattern now
-	DIR_ARTIST=$(echo ${TAG_ARTIST} | ${VALIDATE})
-	DIR_ALBUM=$(echo ${TAG_ALBUM} | ${VALIDATE})
+	DIR_ARTIST=$(echo "${TAG_ARTIST}" | ${VALIDATE})
+	DIR_ALBUM=$(echo "${TAG_ALBUM}" | ${VALIDATE})
 	PATTERN=$(update_pattern "${OUTPATTERN}" "artist" "${DIR_ARTIST}")
 	PATTERN=$(update_pattern "${PATTERN}" "album" "${DIR_ALBUM}")
 	PATTERN=$(update_pattern "${PATTERN}" "year" "${TAG_DATE}")
@@ -482,7 +482,7 @@ split_file () {
 	while [ $i -le ${TRACKS_NUM} ]; do
 		TAG_TITLE=$(cueprint -n $i -t %t "${CUE}" 2>/dev/null)
 		FILE_TRACK="$(printf %02i $i)"
-		FILE_TITLE=$(echo ${TAG_TITLE} | ${VALIDATE})
+		FILE_TITLE=$(echo "${TAG_TITLE}" | ${VALIDATE})
 		f="${OUT}/${FILE_TRACK}.${FORMAT}"
 
 		TAG_PERFORMER=$(cueprint -n $i -t %p "${CUE}" 2>/dev/null)
