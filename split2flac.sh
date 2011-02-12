@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2009-2010 Serge "ftrvxmtrx" Ziryukin
+# Copyright (c) 2009-2011 Serge "ftrvxmtrx" Ziryukin
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -66,7 +66,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=92
+VERSION=93
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -339,7 +339,7 @@ split_file () {
 	if [ ${NOPIC} -eq 1 ]; then
 		unset PIC
 	elif [ -z "${PIC}" ]; then
-		# try common names 
+		# try common names
 		SDIR=$(dirname "${FILE}")
 
 		for i in cover.jpg front_cover.jpg folder.jpg; do
