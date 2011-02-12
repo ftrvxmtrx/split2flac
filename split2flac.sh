@@ -66,7 +66,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=90
+VERSION=91
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -375,6 +375,19 @@ split_file () {
 	TAG_ARTIST=$(${GETTAG} %P "${CUE}" 2>/dev/null)
 	TAG_ALBUM=$(${GETTAG} %T "${CUE}" 2>/dev/null)
 	TRACKS_NUM=$(${GETTAG} %N "${CUE}" 2>/dev/null)
+
+	# some cue sheets may have non-audio tracks (see issue #12)
+	# we can check the difference between what cuebreakpoints and cueprint gives us
+	BREAKPOINTS_NUM=$(($(cuebreakpoints "${CUE}" 2>/dev/null | wc -l) + 1))
+
+	# too bad, we can't fix that in a _right_ way
+	if [ ${BREAKPOINTS_NUM} -lt ${TRACKS_NUM} ]; then
+		emsg "'cueprint' tool reported ${TRACKS_NUM} tracks, "
+		emsg "but there seem to be only ${BREAKPOINTS_NUM} audio ones\n"
+		emsg "Sorry, there is no any helpful options in the 'cueprint' tool for this problem.\n"
+		emsg "You probably remove non-audio tracks from the cue sheet (\"${CUE}\") by hand.\n"
+		return 1
+	fi
 
 	if [ -z "${TRACKS_NUM}" ]; then
 		emsg "Failed to get number of tracks from CUE sheet.\n"
