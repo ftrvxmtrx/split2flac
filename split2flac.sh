@@ -66,7 +66,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=93
+VERSION=94
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -420,6 +420,7 @@ split_file () {
 	DIR_ALBUM=$(echo "${TAG_ALBUM}" | ${VALIDATE})
 	PATTERN=$(update_pattern "${OUTPATTERN}" "artist" "${DIR_ARTIST}")
 	PATTERN=$(update_pattern "${PATTERN}" "album" "${DIR_ALBUM}")
+	PATTERN=$(update_pattern "${PATTERN}" "genre" "${TAG_GENRE}")
 	PATTERN=$(update_pattern "${PATTERN}" "year" "${TAG_DATE}")
 	PATTERN=$(update_pattern "${PATTERN}" "ext" "${FORMAT}")
 
