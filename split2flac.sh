@@ -49,6 +49,8 @@ FORMAT="${0##*split2}"
 FORMAT="${FORMAT%.sh}"
 DIR="."
 OUTPATTERN="@artist/{@year - }@album/@track - @title.@ext"
+COPYMASKS="Covers,covers,*.log,*.txt,*.jpg,*.cbr"
+COPYFILES=1
 
 # codecs default arguments
 ENCARGS_flac="-8"
@@ -66,7 +68,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=95
+VERSION=96
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -84,6 +86,8 @@ Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIO
          \$cG-eh\$cZ                   - show help for current encoder and exit\$cZ
          \$cG-c \${cU}FILE\$cZ             \$cR*\$cZ - use file as a cover image (does not work with \${cU}DIR\$cZ)
          \$cG-nc                 \${cR}*\$cZ - do not set any cover images
+         \$cG-C \${cU}MASKS\$cZ            \$cR*\$cZ - specify wildcards for files to copy over (current is \$cP'\${COPYMASKS}'\$cZ)
+         \$cG-nC                 \${cR}*\$cZ - do not copy any files
          \$cG-cs \${cU}WxH\$cZ             \$cR*\$cZ - set cover image size (current is \$cP\${PIC_SIZE}\$cZ)
          \$cG-d                  \$cR*\$cZ - create artist/album subdirs (default)
          \$cG-nd                 \$cR*\$cZ - do not create any subdirs
@@ -150,6 +154,8 @@ while [ "$1" ]; do
 		-eh)		 ENCHELP=1;;
 		-c)			 NOPIC=0; PIC=$2; shift;;
 		-nc)		 NOPIC=1;;
+		-C)		 COPYMASKS="$1"; COPYFILES=1; shift;;
+		-nC)		 COPYFILES=0;;
 		-cs)		 PIC_SIZE=$2; shift;;
 		-d)			 NOSUBDIRS=0;;
 		-nd)		 NOSUBDIRS=1;;
@@ -186,6 +192,8 @@ eval "export ENCARGS_${FORMAT}=\"${ENCARGS}\""
 if [ ${SAVE} -eq 1 ]; then
 	echo "DIR=\"${DIR}\"" > "${CONFIG}"
 	echo "OUTPATTERN=\"${OUTPATTERN}\"" >> "${CONFIG}"
+	echo "COPYMASKS=\"${COPYMASKS}\"" >> "${CONFIG}"
+	echo "COPYFILES=${COPYFILES}" >> "${CONFIG}"
 	echo "NOSUBDIRS=${NOSUBDIRS}" >> "${CONFIG}"
 	echo "NOPIC=${NOPIC}" >> "${CONFIG}"
 	echo "REMOVE=${REMOVE}" >> "${CONFIG}"
@@ -335,13 +343,13 @@ split_file () {
 		fi
 	fi
 
+	SDIR=$(dirname "${FILE}")
+
 	# search for a front cover image
 	if [ ${NOPIC} -eq 1 ]; then
 		unset PIC
 	elif [ -z "${PIC}" ]; then
 		# try common names
-		SDIR=$(dirname "${FILE}")
-
 		for i in cover.jpg front_cover.jpg folder.jpg; do
 			if [ -r "${SDIR}/$i" ]; then
 				PIC="${SDIR}/$i"
@@ -369,6 +377,11 @@ split_file () {
 		[ ${FORCE} -eq 1 ] \
 			&& $msg "$msg_removal (WITHOUT ASKING)$cZ\n" \
 			|| $msg "$msg_removal if user says 'y'$cZ\n"
+	fi
+
+	# files to copy over
+	if [ ${COPYFILES} -eq 1 -a "${COPYMASKS}" ]; then
+		$msg "${cG}Copy over     :$cZ ${COPYMASKS}\n"
 	fi
 
 	# get common tags
@@ -593,6 +606,22 @@ split_file () {
 				return 1
 			fi
 		fi
+	fi
+
+	# copy files
+	if [ ${COPYFILES} -eq 1 -a "${COPYMASKS}" ]; then
+		old=`pwd`
+		cd "${SDIR}"
+		$msg "\n${cG}Copying files:$cZ\n"
+		eval "for i in {${COPYMASKS}}; do \
+				test -r \"\$i\" && \
+				echo \"   +> \$i\" 2>/dev/null; done"
+		if [ ${DRY} -ne 1 ]; then
+			eval "for i in {${COPYMASKS}}; do \
+					test -r \"\$i\" && \
+					cp -r \"\$i\" \"\${OUT}/\"; done"
+		fi
+		cd "${old}"
 	fi
 
 	rm -f "${TMPPIC}"
