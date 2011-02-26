@@ -68,7 +68,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=97
+VERSION=98
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -172,7 +172,7 @@ while [ "$1" ]; do
 		-v|--version)	 $msg "split2${FORMAT} version: ${VERSION}\n"; exit 0;;
 		-*) eval "$msg \"${HELP}\""; emsg "\nUnknown option $1\n"; exit 1;;
 		*)
-			if [ "${INPATH}" ]; then
+			if [ -n "${INPATH}" ]; then
 				eval "$msg \"${HELP}\""
 				emsg "\nUnknown option $1\n"
 				exit 1
@@ -283,7 +283,7 @@ split_file () {
 					fi
 				fi
 
-				if [ "${CUESHEET}" ]; then
+				if [ -n "${CUESHEET}" ]; then
 					$msg "${cP}Found internal cue sheet$cZ\n"
 					CUE="${TMPCUE}"
 					echo "${CUESHEET}" > "${CUE}"
@@ -333,7 +333,7 @@ split_file () {
 		fi
 	fi
 
-	if [ "${CHARSET}" -a "${CHARSET}" != "utf-8" ]; then
+	if [ -n "${CHARSET}" -a "${CHARSET}" != "utf-8" ]; then
 		CUE="${TMPCUE}"
 		echo "${CUESHEET}" > "${CUE}"
 
@@ -380,7 +380,7 @@ split_file () {
 	fi
 
 	# files to copy over
-	if [ ${COPYFILES} -eq 1 -a "${COPYMASKS}" ]; then
+	if [ ${COPYFILES} -eq 1 -a -n "${COPYMASKS}" ]; then
 		$msg "${cG}Copy over     :$cZ ${COPYMASKS}\n"
 	fi
 
@@ -418,7 +418,7 @@ split_file () {
 
 	unset TAG_DATE
 
-	if [ "${YEAR}" ]; then
+	if [ -n "${YEAR}" ]; then
 		[ ${YEAR} -ne 0 ] && TAG_DATE="${YEAR}"
 	fi
 
@@ -478,7 +478,7 @@ split_file () {
 		fi
 
 		# prepare cover image
-		if [ "${PIC}" ]; then
+		if [ -n "${PIC}" ]; then
 			convert "${PIC}" -resize "${PIC_SIZE}" "${TMPPIC}"
 			if [ $? -eq 0 ]; then
 				PIC="${TMPPIC}"
@@ -501,7 +501,7 @@ split_file () {
 
 		TAG_PERFORMER=$(cueprint -n $i -t %p "${CUE}" 2>/dev/null)
 
-		if [ "${TAG_PERFORMER}" -a "${TAG_PERFORMER}" != "${TAG_ARTIST}" ]; then
+		if [ -n "${TAG_PERFORMER}" -a "${TAG_PERFORMER}" != "${TAG_ARTIST}" ]; then
 			$msg "$i: $cG${TAG_PERFORMER} - ${TAG_TITLE}$cZ\n"
 		else
 			TAG_PERFORMER="${TAG_ARTIST}"
@@ -686,7 +686,7 @@ if [ -d "${INPATH}" ]; then
 	fi
 	$msg "${cG}Input dir     :$cZ ${INPATH}$cZ\n\n"
 	split_collection "${INPATH}"
-elif [ "${INPATH}" ]; then
+elif [ -n "${INPATH}" ]; then
 	split_file "${INPATH}"
 else
 	emsg "No input filename given. Use -h for help.\n"
