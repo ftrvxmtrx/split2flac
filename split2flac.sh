@@ -68,7 +68,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=98
+VERSION=99
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -169,7 +169,16 @@ while [ "$1" ]; do
 		-ng)		 REPLAY_GAIN=0;;
 		-s)			 SAVE=1;;
 		-h|--help|-help) eval "$msg \"${HELP}\""; exit 0;;
-		-v|--version)	 $msg "split2${FORMAT} version: ${VERSION}\n"; exit 0;;
+		-v|--version)
+			$msg "split2${FORMAT} version: ${VERSION}\n\n";
+			shntool -v 2>&1 | grep '^shntool';
+			flac --version 2>/dev/null;
+			wavpack --help 2>&1 | grep 'Version';
+			mac 2>&1 | grep '(v ';
+			faac -h 2>&1 | grep '^FAAC';
+			oggenc --version 2>/dev/null;
+			lame --version | grep '^LAME';
+			exit 0;;
 		-*) eval "$msg \"${HELP}\""; emsg "\nUnknown option $1\n"; exit 1;;
 		*)
 			if [ -n "${INPATH}" ]; then
