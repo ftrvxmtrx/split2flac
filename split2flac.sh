@@ -35,7 +35,7 @@
 # 3 - something has failed
 
 CONFIG="${HOME}/.split2flac"
-TMPCUE="${HOME}/.split2flac_sheet.cue"
+TMPCUE="${HOME}/.split2flac_XXXXX.cue"
 TMPPIC="${HOME}/.split2flac_cover.jpg"
 FAILED="split_failed.txt"
 
@@ -68,7 +68,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=100
+VERSION=101
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -294,6 +294,7 @@ split_file () {
 
 				if [ -n "${CUESHEET}" ]; then
 					$msg "${cP}Found internal cue sheet$cZ\n"
+					TMPCUE=$(mktemp "${TMPCUE}")
 					CUE="${TMPCUE}"
 					echo "${CUESHEET}" > "${CUE}"
 
