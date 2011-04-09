@@ -68,7 +68,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=101
+VERSION=102
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -105,7 +105,9 @@ Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIO
 \$cR*\$cZ - option affects configuration if \$cP'-s'\$cZ option passed.
 \${cP}NOTE: \$cG'-c some_file.jpg -s'\$cP only \${cU}allows\$cZ\$cP cover images, it doesn't set a default one.
 \${cZ}Supported \$cU\${cG}FORMATs\${cZ}: flac, m4a, mp3, ogg, wav.
-Supported tags for \$cU\${cG}PATTERN\${cZ}: @artist, @album, @year, @track, @title, @genre, @ext.
+Supported tags for \$cU\${cG}PATTERN\${cZ}: @artist, @album, @year, @track, @performer, @title, @genre, @ext.
+@performer tag is useful with 'various artists' albums, when you want to add
+each artist's name to the track filename. It works as @artist if track performer is undefined.
 
 It's better to pass \$cP'-p'\$cZ option to see what will happen when actually splitting tracks.
 You may want to pass \$cP'-s'\$cZ option for the first run to save default configuration
@@ -519,6 +521,7 @@ split_file () {
 		fi
 
 		FINAL=$(update_pattern "${OUT}/${PATTERN}" "title" "${FILE_TITLE}")
+		FINAL=$(update_pattern "${FINAL}" "performer" "${TAG_PERFORMER}")
 		FINAL=$(update_pattern "${FINAL}" "track" "${FILE_TRACK}")
 
 		if [ ${DRY} -ne 1 ]; then
