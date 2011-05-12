@@ -68,7 +68,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=102
+VERSION=103
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -422,8 +422,7 @@ split_file () {
 		return 1
 	fi
 
-	TAG_GENRE=$(awk '{ if (/REM[ \t]+GENRE[ \t]+(.*)/) { print $0; exit } }' < "${CUE}")
-	TAG_GENRE=$(echo "${TAG_GENRE}" | sed 's/REM[ \t]\+GENRE[ \t]\+//;s/"\(.*\)"/\1/')
+	TAG_GENRE=$(sed 's/REM[ \t]*GENRE[ \t]*\(.*\)/\1/;s/"\(.*\)"/\1/;q' < "${CUE}")
 
 	YEAR=$(awk '{ if (/REM[ \t]+DATE/) { printf "%i", $3; exit } }' < "${CUE}")
 	YEAR=$(echo ${YEAR} | tr -d -c '[:digit:]')
