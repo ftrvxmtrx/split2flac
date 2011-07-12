@@ -68,7 +68,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=103
+VERSION=104
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -710,4 +710,4 @@ STATUS=$?
 
 $msg "\n${cP}Finished$cZ\n"
 
-[ ${STATUS} -ne 0 ] && exit 3
+[ ${STATUS} -ne 0 ] && exit 3 || exit 0
