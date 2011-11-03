@@ -68,7 +68,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=104
+VERSION=105
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -628,12 +628,12 @@ split_file () {
 		eval "for i in {${COPYMASKS}}; do \
 				test -r \"\$i\" && \
 				echo \"   +> \$i\" 2>/dev/null; done"
+		cd "${old}"
 		if [ ${DRY} -ne 1 ]; then
-			eval "for i in {${COPYMASKS}}; do \
+			eval "for i in \"${SDIR}\"/{${COPYMASKS}}; do \
 					test -r \"\$i\" && \
 					cp -r \"\$i\" \"\${OUT}/\"; done"
 		fi
-		cd "${old}"
 	fi
 
 	rm -f "${TMPPIC}"
