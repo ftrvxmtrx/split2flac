@@ -25,7 +25,7 @@
 # SPLIT:   flac, wavpack, mac
 # CONVERT: flac/flake, faac, libmp4v2, id3lib/mutagen, lame, vorbis-tools
 # ART:     ImageMagick
-# CHARSET: iconv
+# CHARSET: iconv, enca
 # GAIN:    flac, aacgain, mp3gain, vorbisgain
 
 # Exit codes:
@@ -51,6 +51,7 @@ DIR="."
 OUTPATTERN="@artist/{@year - }@album/@track - @title.@ext"
 COPYMASKS="Covers,covers,*.log,*.txt,*.jpg,*.cbr"
 COPYFILES=1
+ENCA_ARGS=""
 
 # codecs default arguments
 ENCARGS_flac="-8"
@@ -68,7 +69,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=105
+VERSION=106
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -84,6 +85,7 @@ Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIO
          \$cG-f \${cU}FORMAT\$cZ             - use specific output format (current is \$cP\${FORMAT}\$cZ)
          \$cG-e \${cU}'ARG1 ARG2'\$cZ      \$cR*\$cZ - encoder arguments (current is \$cP'\${ENCARGS}'\$cZ)
          \$cG-eh\$cZ                   - show help for current encoder and exit\$cZ
+         \$cG-enca \${cU}'ARG1 ARG2'\$cZ   \$cR*\$cZ - enca additional arguments (current is \$cP'\${ENCA_ARGS}'\$cZ)
          \$cG-c \${cU}FILE\$cZ             \$cR*\$cZ - use file as a cover image (does not work with \${cU}DIR\$cZ)
          \$cG-nc                 \${cR}*\$cZ - do not set any cover images
          \$cG-C \${cU}MASKS\$cZ            \$cR*\$cZ - specify wildcards for files to copy over (current is \$cP'\${COPYMASKS}'\$cZ)
@@ -154,6 +156,7 @@ while [ "$1" ]; do
 		-f)			 FORMAT=$2; update_encargs; shift;;
 		-e)			 ENCARGS=$2; shift;;
 		-eh)		 ENCHELP=1;;
+		-enca)		 ENCA_ARGS=$2; shift;;
 		-c)			 NOPIC=0; PIC=$2; shift;;
 		-nc)		 NOPIC=1;;
 		-C)			 COPYMASKS=$2; COPYFILES=1; shift;;
@@ -216,6 +219,7 @@ if [ ${SAVE} -eq 1 ]; then
 	echo "ENCARGS_mp3=\"${ENCARGS_mp3}\"" >> "${CONFIG}"
 	echo "ENCARGS_ogg=\"${ENCARGS_ogg}\"" >> "${CONFIG}"
 	echo "ENCARGS_wav=\"${ENCARGS_wav}\"" >> "${CONFIG}"
+	echo "ENCA_ARGS=\"${ENCA_ARGS}\"" >> "${CONFIG}"
 	$msg "${cP}Configuration saved$cZ\n"
 fi
 
@@ -322,6 +326,11 @@ split_file () {
 
 	CUESHEET=$(iconv -f "${CHARSET}" -t utf-8 "${CUE}" 2>/dev/null)
 
+	# try to guess the charset using enca
+	if [ $? -ne 0 ]; then
+		CUESHEET=$(enconv ${ENCA_ARGS} -x utf8 < "${CUE}" 2>/dev/null)
+	fi
+
 	if [ $? -ne 0 ]; then
 		[ "${CHARSET}" = "utf-8" ] \
 			&& emsg "Cue sheet is not utf-8\n" \
@@ -345,14 +354,13 @@ split_file () {
 		fi
 	fi
 
-	if [ -n "${CHARSET}" -a "${CHARSET}" != "utf-8" ]; then
-		CUE="${TMPCUE}"
-		echo "${CUESHEET}" > "${CUE}"
+	# save converted cue sheet
+	CUE="${TMPCUE}"
+	echo "${CUESHEET}" > "${CUE}"
 
-		if [ $? -ne 0 ]; then
-			emsg "Unable to save converted cue sheet\n"
-			return 1
-		fi
+	if [ $? -ne 0 ]; then
+		emsg "Unable to save converted cue sheet\n"
+		return 1
 	fi
 
 	SDIR=$(dirname "${FILE}")
