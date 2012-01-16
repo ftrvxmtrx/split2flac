@@ -14,11 +14,11 @@ Manual installation
   * place ``split2flac`` somewhere (``/usr/bin`` or ``/usr/local/bin`` is fine)
   * create symbolic links to the same file like this:
 
-        $ cd /usr/bin    # this is a directory where split2flac was installed
-        $ ln -s split2flac split2mp3
-        $ ln -s split2flac split2ogg
-        $ ln -s split2flac split2m4a
-        $ ln -s split2flac split2wav
+        cd /usr/bin    # this is a directory where split2flac was installed
+        ln -s split2flac split2mp3
+        ln -s split2flac split2ogg
+        ln -s split2flac split2m4a
+        ln -s split2flac split2wav
 
 Dependencies
 ------------
