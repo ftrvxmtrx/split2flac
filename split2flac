@@ -68,7 +68,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=108
+VERSION=109
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -409,7 +409,7 @@ split_file () {
 	TAG_ALBUM=$(${GETTAG} %T "${CUE}" 2>/dev/null)
 	TRACKS_NUM=$(${GETTAG} %N "${CUE}" 2>/dev/null)
 
-	# some cue sheets may have non-audio tracks (see issue #12)
+	# some cue sheets may have non-audio tracks
 	# we can check the difference between what cuebreakpoints and cueprint gives us
 	BREAKPOINTS_NUM=$(($(cuebreakpoints "${CUE}" 2>/dev/null | wc -l) + 1))
 
@@ -489,7 +489,9 @@ split_file () {
 		esac
 
 		# split to tracks
+		# sed expression is a fix for "shnsplit: error: m:ss.ff format can only be used with CD-quality files"
 		cuebreakpoints "${CUE}" 2>/dev/null | \
+			sed 's/$/0/' | \
 			shnsplit -O never -o "${ENC}" -d "${OUT}" -t "%n" "${FILE}"
 		if [ $? -ne 0 ]; then
 			emsg "Failed to split\n"
