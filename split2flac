@@ -46,7 +46,6 @@ NOCOLORS=0
 PIC_SIZE="192x192"
 REPLAY_GAIN=0
 FORMAT="${0##*split2}"
-FORMAT="${FORMAT%.sh}"
 DIR="."
 OUTPATTERN="@artist/{@year - }@album/@track - @title.@ext"
 COPYMASKS="Covers,covers,*.log,*.txt,*.jpg,*.cbr"
@@ -69,13 +68,13 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=107
+VERSION=108
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
 
-Usage: \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIONS\$cZ]\$cZ
-       \${cZ}split2\${FORMAT}.sh [\${cU}OPTIONS\$cZ] \${cU}DIR\$cZ  [\${cU}OPTIONS\$cZ]\$cZ
+Usage: \${cZ}split2\${FORMAT} [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIONS\$cZ]\$cZ
+       \${cZ}split2\${FORMAT} [\${cU}OPTIONS\$cZ] \${cU}DIR\$cZ  [\${cU}OPTIONS\$cZ]\$cZ
          \$cG-p\$cZ                    - dry run
          \$cG-o \${cU}DIRECTORY\$cZ        \$cR*\$cZ - set output directory (current is \$cP\${DIR}\$cZ)
          \$cG-of \${cU}'PATTERN'\$cZ       \$cR*\$cZ - use specific output naming pattern (current is \$cP'\${OUTPATTERN}'\$cZ)
