@@ -67,7 +67,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=111
+VERSION=112
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -108,6 +108,8 @@ Usage: \${cZ}split2\${FORMAT} [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIONS\
 Supported tags for \$cU\${cG}PATTERN\${cZ}: @artist, @album, @year, @track, @performer, @title, @genre, @ext.
 @performer tag is useful with 'various artists' albums, when you want to add
 each artist's name to the track filename. It works as @artist if track performer is undefined.
+Special \"underscored\" tags are also supported (@_artist, @_album, etc). If used, spaces will be replaced with
+underscores. It's useful if you want to have filenames without spaces.
 
 It's better to pass \$cP'-p'\$cZ option to see what will happen when actually splitting tracks.
 You may want to pass \$cP'-s'\$cZ option for the first run to save default configuration
@@ -252,14 +254,25 @@ fi
 $msg "${cG}Output dir    :$cZ ${DIR:?Output directory was not set}\n"
 
 # replaces a tag name with the value of the tag. $1=pattern $2=tag_name $3=tag_value
+update_pattern_aux () {
+	tag_name="$2"
+	tag_value="$3"
+	expr_match="@${tag_name}"
+	expr_match_opt="[{]${expr_match}\([^}]*\)[}]"
+
+	echo "$1" | { [ "${tag_value}" ] \
+		&& sed "s/${expr_match_opt}/${tag_value}\1/g;s/${expr_match}/${tag_value}/g" \
+		|| sed "s/${expr_match_opt}//g;s/${expr_match}//g"; }
+}
+
+# replaces a tag name with the value of the tag. $1=pattern $2=tag_name $3=tag_value
 update_pattern () {
 	# replace '/' with '\' and '&' with '\&' for proper sed call
 	tag_name=$(echo "$2" | sed 's,/,\\\\,g;s,&,\\&,g')
 	tag_value=$(echo "$3" | sed 's,/,\\\\,g;s,&,\\&,g')
 
-	echo "$1" | { [ "$3" ] \
-		&& sed "s/[{]@${tag_name}\([^}]*\)[}]/${tag_value}\1/g;s/@${tag_name}/${tag_value}/g" \
-		|| sed "s/[{]@${tag_name}\([^}]*\)[}]//g;s/@${tag_name}//g"; }
+	v=$(update_pattern_aux "$1" "${tag_name}" "${tag_value}")
+	update_pattern_aux "$v" "_${tag_name}" $(echo "${tag_value}" | sed "s/ /_/g")
 }
 
 # splits a file
