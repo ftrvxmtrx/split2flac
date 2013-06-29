@@ -43,3 +43,10 @@ Dependencies
     * **aacgain** to adjust gain in M4A
     * **mp3gain** for MP3
     * **vorbisgain** for OGG VORBIS gain adjustment
+
+Support
+-------
+
+You can support development of this (and other) software on Gittip (https://www.gittip.com/ftrvxmtrx/).
+If you can't (or don't want) to do something like that, learn about Plan 9 instead (http://www.plan9.bell-labs.com/wiki/plan9/Overview/index.html).
+Thank you.
