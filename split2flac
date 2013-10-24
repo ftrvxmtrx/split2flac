@@ -563,6 +563,7 @@ split_file () {
 						--set-tag="ALBUM=${TAG_ALBUM}" \
 						--set-tag="TITLE=${TAG_TITLE}" \
 						--set-tag="TRACKNUMBER=$i" \
+						--set-tag="TRACKTOTAL=${TRACKS_NUM}" \
 						"${FINAL}" >/dev/null
 					RES=$?
 
@@ -588,7 +589,8 @@ split_file () {
 						-t "ARTIST=${TAG_PERFORMER}" \
 						-t "ALBUM=${TAG_ALBUM}" \
 						-t "TITLE=${TAG_TITLE}" \
-						-t "TRACKNUMBER=$i" >/dev/null
+						-t "TRACKNUMBER=$i" \
+						-t "TRACKTOTAL=${TRACKS_NUM}" >/dev/null
 					RES=$?
 
 					[ "${TAG_GENRE}" ] && { ${VORBISCOMMENT} "${FINAL}" -t "GENRE=${TAG_GENRE}" >/dev/null; RES=$RES$?; }
