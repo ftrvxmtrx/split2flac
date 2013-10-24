@@ -258,10 +258,10 @@ update_pattern_aux () {
 	tag_name="$2"
 	tag_value="$3"
 	expr_match="@${tag_name}"
-	expr_match_opt="[{]${expr_match}\([^}]*\)[}]"
+	expr_match_opt="[{]\([^}{]*\)${expr_match}\([^}]*\)[}]"
 
 	echo "$1" | { [ "${tag_value}" ] \
-		&& sed "s/${expr_match_opt}/${tag_value}\1/g;s/${expr_match}/${tag_value}/g" \
+		&& sed "s/${expr_match_opt}/\1${tag_value}\2/g;s/${expr_match}/${tag_value}/g" \
 		|| sed "s/${expr_match_opt}//g;s/${expr_match}//g"; }
 }
 
