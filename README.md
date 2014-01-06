@@ -1,7 +1,7 @@
 split2flac
 ==========
 
-**split2flac** splits one big APE/FLAC/WV/WAV audio image (or a collection of such files, recursively) with CUE sheet
+**split2flac** splits one big APE/FLAC/TTA/WV/WAV audio image (or a collection of such files, recursively) with CUE sheet
 into FLAC/M4A/MP3/OGG_VORBIS/WAV tracks with tagging, renaming, charset conversion of cue sheet, album cover images.
 It also uses configuration file, so no need to pass a lot of arguments every time, only an input file.
 Should work in any POSIX-compliant shell.
@@ -32,6 +32,7 @@ Dependencies
     * **faac** and **libmp4v2** to split into M4A
     * **wavpack** to split WV
     * **mac** to split APE
+    * **ttaenc** to split TTA
     * **imagemagick** to convert/resize album cover images
     * **iconv** to convert CUE sheet from non-UTF8 charset
     * **enca** to automatically detect charset if it's not UTF8
