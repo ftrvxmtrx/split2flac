@@ -294,6 +294,9 @@ split_file () {
 				# try to extract internal one
 				CUESHEET=$(${METAFLAC} --show-tag=CUESHEET "${FILE}" 2>/dev/null | sed 's/^cuesheet=//;s/^CUESHEET=//')
 
+				# try to extract cue-sheet from metadata block (METADATA block #2, type: 5 (CUESHEET))
+				CUESHEET=$(${METAFLAC} --export-cuesheet-to=- "${FILE}" 2>/dev/null)
+
 				# try WV internal cue sheet
 				[ -z "${CUESHEET}" ] && CUESHEET=$(wvunpack -q -c "${FILE}" 2>/dev/null)
 
