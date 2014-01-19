@@ -447,7 +447,7 @@ split_file () {
 		return 1
 	fi
 
-	TAG_GENRE=$(sed 's/REM[ \t]*GENRE[ \t]*\(.*\)/\1/;s/"\(.*\)"/\1/;q' < "${CUE}")
+	TAG_GENRE=$(sed -n 's/REM[ \t]*GENRE[ \t]*"*\([^"]*\)"*/\1/p;q' < "${CUE}")	
 
 	YEAR=$(awk '{ if (/REM[ \t]+DATE/) { printf "%i", $3; exit } }' < "${CUE}")
 	YEAR=$(echo ${YEAR} | tr -d -c '[:digit:]')
