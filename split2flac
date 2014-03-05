@@ -384,9 +384,10 @@ split_file () {
 		unset PIC
 	elif [ -z "${PIC}" ]; then
 		# try common names
-		for i in cover.jpg front_cover.jpg folder.jpg; do
-			if [ -r "${SDIR}/$i" ]; then
-				PIC="${SDIR}/$i"
+		for i in $(find ${SDIR} -name \*.jpg | \
+				   egrep -i 'front|cover|folder') ; do
+			if [ -r "$i" ]; then
+				PIC="$i"
 				break
 			fi
 		done
