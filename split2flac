@@ -275,6 +275,14 @@ update_pattern () {
 	update_pattern_aux "$v" "_${tag_name}" $(echo "${tag_value}" | sed "s/ /_/g")
 }
 
+check_cuetools () {
+	if ! which cuebreakpoints 2>/dev/null ; then
+		emsg "'cuebreakpoints' tool was not found, "
+		emsg "you should install 'cuetools' package\n"
+		exit 1
+	fi
+}
+
 # splits a file
 split_file () {
 	TMPCUE="${HOME}/.split2flac_XXXXX.cue"
@@ -422,6 +430,8 @@ split_file () {
 	TAG_ARTIST=$(${GETTAG} %P "${CUE}" 2>/dev/null)
 	TAG_ALBUM=$(${GETTAG} %T "${CUE}" 2>/dev/null)
 	TRACKS_NUM=$(${GETTAG} %N "${CUE}" 2>/dev/null)
+
+	check_cuetools
 
 	# some cue sheets may have non-audio tracks
 	# we can check the difference between what cuebreakpoints and cueprint gives us
