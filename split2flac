@@ -283,6 +283,14 @@ check_cuetools () {
 	fi
 }
 
+check_shntool () {
+	if ! which shnsplit 2>/dev/null ; then
+		emsg "'shnsplit' tool was not found, "
+		emsg "you should install 'shntool' package\n"
+		exit 1
+	fi
+}
+
 # splits a file
 split_file () {
 	TMPCUE="${HOME}/.split2flac_XXXXX.cue"
@@ -511,6 +519,8 @@ split_file () {
 			wav)  ENC="wav ${ENCARGS}"; REPLAY_GAIN=0;;
 			*)	  emsg "Unknown output format ${FORMAT}\n"; exit 1;;
 		esac
+
+		check_shntool
 
 		# split to tracks
 		# sed expression is a fix for "shnsplit: error: m:ss.ff format can only be used with CD-quality files"
