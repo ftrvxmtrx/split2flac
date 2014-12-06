@@ -294,6 +294,9 @@ split_file () {
 				# try to extract internal one
 				CUESHEET=$(${METAFLAC} --show-tag=CUESHEET "${FILE}" 2>/dev/null | sed 's/^cuesheet=//;s/^CUESHEET=//')
 
+				# try to extract cue-sheet from metadata block (METADATA block #2, type: 5 (CUESHEET))
+				[ -z "${CUESHEET}" ] && CUESHEET=$(${METAFLAC} --export-cuesheet-to=- "${FILE}" 2>/dev/null)
+
 				# try WV internal cue sheet
 				[ -z "${CUESHEET}" ] && CUESHEET=$(wvunpack -q -c "${FILE}" 2>/dev/null)
 
@@ -444,7 +447,7 @@ split_file () {
 		return 1
 	fi
 
-	TAG_GENRE=$(sed 's/REM[ \t]*GENRE[ \t]*\(.*\)/\1/;s/"\(.*\)"/\1/;q' < "${CUE}")
+	TAG_GENRE=$(sed -n 's/REM[ \t]*GENRE[ \t]*"*\([^"]*\)"*/\1/p;q' < "${CUE}")	
 
 	YEAR=$(awk '{ if (/REM[ \t]+DATE/) { printf "%i", $3; exit } }' < "${CUE}")
 	YEAR=$(echo ${YEAR} | tr -d -c '[:digit:]')
@@ -547,7 +550,7 @@ split_file () {
 		FINAL=$(update_pattern "${FINAL}" "performer" "${TAG_PERFORMER}")
 		FINAL=$(update_pattern "${FINAL}" "track" "${FILE_TRACK}")
 
-		if [ ${DRY} -ne 1 ]; then
+		if [ ${DRY} -ne 1 -a "$f" != "${FINAL}" ]; then
 			mv "$f" "${FINAL}"
 			if [ $? -ne 0 ]; then
 				emsg "Failed to rename track file\n"
