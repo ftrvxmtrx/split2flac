@@ -47,7 +47,7 @@ REPLAY_GAIN=0
 FORMAT="${0##*split2}"
 DIR="."
 OUTPATTERN="@artist/{@year - }@album/@track - @title.@ext"
-COPYMASKS="Covers,covers,*.log,*.txt,*.jpg,*.cbr"
+COPYMASKS="[Cc]overs \*.log \*.txt \*.jpg \*.cbr"
 COPYFILES=1
 ENCA_ARGS=""
 
@@ -67,7 +67,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=115
+VERSION=116
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -384,7 +384,7 @@ split_file () {
 		unset PIC
 	elif [ -z "${PIC}" ]; then
 		# try common names
-		for i in {*/,}{*[Cc]over*,*[Ff]older*}.jpg; do
+		for i in *[Cc]over*.jpg *[Ff]older*.jpg */*[Cc]over*.jpg */*[Ff]older*.jpg; do
 			if [ -r "${SDIR}/$i" ]; then
 				PIC="${SDIR}/$i"
 				break
@@ -651,14 +651,14 @@ split_file () {
 		old=`pwd`
 		cd "${SDIR}"
 		$msg "\n${cG}Copying files:$cZ\n"
-		eval "for i in {${COPYMASKS}}; do \
+		eval "for i in ${COPYMASKS}; do \
 				test -r \"\$i\" && \
 				echo \"   +> \$i\" 2>/dev/null; done"
 		cd "${old}"
 		if [ ${DRY} -ne 1 ]; then
-			eval "for i in \"${SDIR}\"/{${COPYMASKS}}; do \
-					test -r \"\$i\" && \
-					cp -r \"\$i\" \"\${OUT}/\"; done"
+			eval "for i in ${COPYMASKS}; do \
+					test -r/\"${SDIR}/\$i\" && \
+					cp -r \"${SDIR}/\$i\" \"\${OUT}/\"; done"
 		fi
 	fi
 
