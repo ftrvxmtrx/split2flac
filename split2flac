@@ -67,7 +67,7 @@ unset PIC INPATH CUE CHARSET
 FORCE=0
 
 # do not forget to update before commit
-VERSION=116
+VERSION=117
 
 HELP="\${cG}split2flac version: ${VERSION}
 Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
@@ -478,6 +478,9 @@ split_file () {
 		path=$(dirname "${PATTERN}")
 		[ "${path}" != "${PATTERN}" ] && OUT="${OUT}/${path}"
 	fi
+
+	# shnsplit is retarded enough to break on double slash
+	OUT=$(echo "${OUT}" | sed s,/[/]*,/,g)
 
 	# remove path from the pattern
 	PATTERN=$(basename "${PATTERN}")
