@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2009-2014 Serge "ftrvxmtrx" Ziryukin
+# Copyright (c) 2009-2015 Serge "ftrvxmtrx" Ziryukin
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -55,8 +55,8 @@ ENCA_ARGS=""
 # codecs default arguments
 ENCARGS_flac="-8"
 ENCARGS_m4a="-q 500"
-ENCARGS_mp3="--preset extreme"
-ENCARGS_ogg="-q 10"
+ENCARGS_mp3="--preset standard"
+ENCARGS_ogg="-q 5"
 ENCARGS_wav=""
 
 # load settings
