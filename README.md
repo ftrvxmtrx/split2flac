@@ -48,6 +48,5 @@ Dependencies
 Support
 -------
 
-You can support development of this (and other) software on Gittip (https://www.gittip.com/ftrvxmtrx/).
-If you can't (or don't want) to do something like that, learn about Plan 9 instead (http://www.plan9.bell-labs.com/wiki/plan9/Overview/index.html).
+Learn about Plan 9 (http://9p.io/wiki/plan9/Overview/index.html). It's awesome.
 Thank you.
