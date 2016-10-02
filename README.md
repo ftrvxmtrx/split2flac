@@ -2,7 +2,7 @@ split2flac
 ==========
 
 **split2flac** splits one big APE/FLAC/TTA/WV/WAV audio image (or a collection of such files, recursively) with CUE sheet
-into FLAC/M4A/MP3/OGG_VORBIS/WAV tracks with tagging, renaming, charset conversion of cue sheet, album cover images.
+into FLAC/M4A/MP3/OGG_VORBIS/OPUS/WAV tracks with tagging, renaming, charset conversion of cue sheet, album cover images.
 It also uses configuration file, so no need to pass a lot of arguments every time, only an input file.
 Should work in any POSIX-compliant shell.
 
@@ -17,6 +17,7 @@ Manual installation
         cd /usr/bin    # this is a directory where split2flac was installed
         ln -s split2flac split2mp3
         ln -s split2flac split2ogg
+        ln -s split2flac split2opus
         ln -s split2flac split2m4a
         ln -s split2flac split2wav
 
@@ -38,6 +39,7 @@ Dependencies
     * **enca** to automatically detect charset if it's not UTF8
     * **lame** and **id3lib** (or better **mutagen** for Unicode tags) to split into MP3
     * **vorbis-tools** to split into OGG VORBIS
+    * **opus-tools** to split into OPUS
 
   * Replay Gain:
     * **flac** for FLAC Replay Gain support

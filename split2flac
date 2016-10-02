@@ -188,6 +188,7 @@ while [ "$1" ]; do
 			mac 2>&1 | grep '(v ';
 			faac -h 2>&1 | grep '^FAAC';
 			oggenc --version 2>/dev/null;
+			opusenc --version 2>/dev/null;
 			lame --version | grep '^LAME';
 			exit 0;;
 		-*) eval "$msg \"${HELP}\""; emsg "\nUnknown option $1\n"; exit 1;;

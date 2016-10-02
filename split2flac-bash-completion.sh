@@ -6,7 +6,7 @@ _split2flac () {
   _get_comp_words_by_ref cur prev
 
   opts="-p -o -of -cue -cuecharset -nask -f -e -eh -enca -c -nc -C -nC -cs -d -nd -D -nD -F -colors -nocolors -g -ng -s -h -v"
-  formats="flac m4a mp3 ogg wav"
+  formats="flac m4a mp3 ogg opus wav"
 
   if [[ ${cur} == -* ]] ; then
     COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
