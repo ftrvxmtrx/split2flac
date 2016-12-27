@@ -57,6 +57,7 @@ ENCARGS_flac="-8"
 ENCARGS_m4a="-q 500"
 ENCARGS_mp3="--preset standard"
 ENCARGS_ogg="-q 5"
+ENCARGS_opus=""
 ENCARGS_wav=""
 
 # load settings
@@ -71,7 +72,7 @@ FORCE=0
 VERSION=122
 
 HELP="\${cG}split2flac version: ${VERSION}
-Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/WAV\$cZ\$cG tracks with tagging and renaming.
+Splits one big \${cU}APE/FLAC/WV/WAV\$cZ\$cG audio image (or a collection) into \${cU}FLAC/M4A/MP3/OGG_VORBIS/OPUS/WAV\$cZ\$cG tracks with tagging and renaming.
 
 Usage: \${cZ}split2\${FORMAT} [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIONS\$cZ]\$cZ
        \${cZ}split2\${FORMAT} [\${cU}OPTIONS\$cZ] \${cU}DIR\$cZ  [\${cU}OPTIONS\$cZ]\$cZ
@@ -105,7 +106,7 @@ Usage: \${cZ}split2\${FORMAT} [\${cU}OPTIONS\$cZ] \${cU}FILE\$cZ [\${cU}OPTIONS\
 
 \$cR*\$cZ - option affects configuration if \$cP'-s'\$cZ option passed.
 \${cP}NOTE: \$cG'-c some_file.jpg -s'\$cP only \${cU}allows\$cZ\$cP cover images, it doesn't set a default one.
-\${cZ}Supported \$cU\${cG}FORMATs\${cZ}: flac, m4a, mp3, ogg, wav.
+\${cZ}Supported \$cU\${cG}FORMATs\${cZ}: flac, m4a, mp3, ogg, opus, wav.
 Supported tags for \$cU\${cG}PATTERN\${cZ}: @artist, @album, @year, @track, @performer, @title, @genre, @ext.
 @performer tag is useful with 'various artists' albums, when you want to add
 each artist's name to the track filename. It works as @artist if track performer is undefined.
@@ -187,6 +188,7 @@ while [ "$1" ]; do
 			mac 2>&1 | grep '(v ';
 			faac -h 2>&1 | grep '^FAAC';
 			oggenc --version 2>/dev/null;
+			opusenc --version 2>/dev/null;
 			lame --version | grep '^LAME';
 			exit 0;;
 		-*) eval "$msg \"${HELP}\""; emsg "\nUnknown option $1\n"; exit 1;;
@@ -223,6 +225,7 @@ if [ ${SAVE} -eq 1 ]; then
 	echo "ENCARGS_m4a=\"${ENCARGS_m4a}\"" >> "${CONFIG}"
 	echo "ENCARGS_mp3=\"${ENCARGS_mp3}\"" >> "${CONFIG}"
 	echo "ENCARGS_ogg=\"${ENCARGS_ogg}\"" >> "${CONFIG}"
+	echo "ENCARGS_opus=\"${ENCARGS_opus}\"" >> "${CONFIG}"
 	echo "ENCARGS_wav=\"${ENCARGS_wav}\"" >> "${CONFIG}"
 	echo "ENCA_ARGS=\"${ENCA_ARGS}\"" >> "${CONFIG}"
 	$msg "${cP}Configuration saved$cZ\n"
@@ -245,6 +248,7 @@ case ${FORMAT} in
 	m4a)  $msg "$msg_format M4A"; enc_help="faac --help";;
 	mp3)  $msg "$msg_format MP3"; enc_help="lame --help";;
 	ogg)  $msg "$msg_format OGG VORBIS"; enc_help="oggenc --help";;
+	opus) $msg "$msg_format OPUS"; enc_help="opusenc --help";;
 	wav)  $msg "$msg_format WAVE"; enc_help="echo Sorry, no arguments available for this encoder";;
 	*)	  emsg "Unknown output format \"${FORMAT}\"\n"; exit 1;;
 esac
@@ -506,6 +510,7 @@ split_file () {
 			m4a)  ENC="cust ext=m4a faac ${ENCARGS} -o %f -"; RG="aacgain";;
 			mp3)  ENC="cust ext=mp3 lame ${ENCARGS} - %f"; RG="mp3gain";;
 			ogg)  ENC="cust ext=ogg oggenc ${ENCARGS} - -o %f"; RG="vorbisgain -a";;
+			opus) ENC="cust ext=opus opusenc ${ENCARGS} - %f"; REPLAY_GAIN=0;;
 			wav)  ENC="wav ${ENCARGS}"; REPLAY_GAIN=0;;
 			*)	  emsg "Unknown output format ${FORMAT}\n"; exit 1;;
 		esac
@@ -585,7 +590,7 @@ split_file () {
 					${ID3TAG} --artist="${TAG_PERFORMER}" \
 						--album="${TAG_ALBUM}" \
 						--song="${TAG_TITLE}" \
-						--track="$i" \
+						--track="$i/${TRACKS_NUM}" \
 						"${FINAL}" >/dev/null
 					RES=$?
 
@@ -604,6 +609,18 @@ split_file () {
 
 					[ "${TAG_GENRE}" ] && { ${VORBISCOMMENT} "${FINAL}" -t "GENRE=${TAG_GENRE}" >/dev/null; RES=$RES$?; }
 					[ "${TAG_DATE}" ] && { ${VORBISCOMMENT} "${FINAL}" -t "DATE=${TAG_DATE}" >/dev/null; RES=$RES$?; }
+					;;
+
+				opus)
+					${ID3TAG} --artist="${TAG_PERFORMER}" \
+						--album="${TAG_ALBUM}" \
+						--song="${TAG_TITLE}" \
+						--track="$i/${TRACKS_NUM}" \
+						"${FINAL}" >/dev/null
+					RES=$?
+
+					[ "${TAG_GENRE}" ] && { ${ID3TAG} --genre="${TAG_GENRE}" "${FINAL}" >/dev/null; RES=$RES$?; }
+					[ "${TAG_DATE}" ] && { ${ID3TAG} --year="${TAG_DATE}" "${FINAL}" >/dev/null; RES=$RES$?; }
 					;;
 
 				m4a)
