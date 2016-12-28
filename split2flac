@@ -557,7 +557,7 @@ split_file () {
 			$msg "$i: $cG${TAG_TITLE}$cZ\n"
 		fi
 
-		FINAL=$(update_pattern "${OUT}/${PATTERN}" "title" "${FILE_TITLE}")
+		FINAL=$(update_pattern "${OUT}/${PATTERN}.${FORMAT}" "title" "${FILE_TITLE}")
 		FINAL=$(update_pattern "${FINAL}" "performer" "${TAG_PERFORMER}")
 		FINAL=$(update_pattern "${FINAL}" "track" "${FILE_TRACK}")
 
