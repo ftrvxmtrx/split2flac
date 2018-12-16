@@ -284,6 +284,43 @@ update_pattern () {
 	update_pattern_aux "$v" "_${tag_name}" $(echo "${tag_value}" | sed "s/ /_/g")
 }
 
+# Extract CUE info from audio file
+extract_cue() {
+	# try to extract internal one
+	CUESHEET=$(${METAFLAC} --show-tag=CUESHEET "${FILE}" 2>/dev/null | sed 's/^cuesheet=//;s/^CUESHEET=//')
+
+	# try WV internal cue sheet
+	[ -z "${CUESHEET}" ] && CUESHEET=$(wvunpack -q -c "${FILE}" 2>/dev/null)
+
+	# try APE internal cue sheet (omfg!)
+	if [ -z "${CUESHEET}" ]; then
+		APETAGEX=$(tail -c 32 "$1" | cut -b 1-8 2>/dev/null)
+		if [ "${APETAGEX}" = "APETAGEX" ]; then
+			LENGTH=$(tail -c 32 "$1" | cut -b 13-16 | od -t u4 | awk '{printf $2}') 2>/dev/null
+			tail -c ${LENGTH} "$1" | grep -a CUESHEET >/dev/null 2>&1
+			if [ $? -eq 0 ]; then
+				CUESHEET=$(tail -c ${LENGTH} "$1" | sed 's/.*CUESHEET.//g' 2>/dev/null)
+				[ $? -ne 0 ] && CUESHEET=""
+			fi
+		fi
+	fi
+
+	if [ -n "${CUESHEET}" ]; then
+		$msg "${cP}Found internal cue sheet$cZ\n"
+		TMPCUE=$(mktemp "${TMPCUE}")
+		CUE="${TMPCUE}"
+		echo "${CUESHEET}" > "${CUE}"
+		TMPCUE="${HOME}/.split2flac_XXXXX.cue"
+
+		if [ $? -ne 0 ]; then
+			emsg "Unable to save internal cue sheet\n"
+			return 1
+		fi
+	else
+		unset CUE
+	fi
+}
+
 # splits a file
 split_file () {
 	TMPCUE="${HOME}/.split2flac_XXXXX.cue"
@@ -296,44 +333,19 @@ split_file () {
 
 	# search for a cue sheet if not specified
 	if [ -z "${CUE}" ]; then
-		CUE="${FILE}.cue"
-		if [ ! -r "${CUE}" ]; then
-			CUE="${FILE%.*}.cue"
+		NB_CUE=`ls *.cue | wc -l`;
+		if [ "${NB_CUE}" -eq 1 ]; then
+			CUE=`ls *.cue`
+		elif [ "${NB_CUE}" -gt 1 ]; then
+			CUE="${FILE}.cue"
 			if [ ! -r "${CUE}" ]; then
-				# try to extract internal one
-				CUESHEET=$(${METAFLAC} --show-tag=CUESHEET "${FILE}" 2>/dev/null | sed 's/^cuesheet=//;s/^CUESHEET=//')
-
-				# try WV internal cue sheet
-				[ -z "${CUESHEET}" ] && CUESHEET=$(wvunpack -q -c "${FILE}" 2>/dev/null)
-
-				# try APE internal cue sheet (omfg!)
-				if [ -z "${CUESHEET}" ]; then
-					APETAGEX=$(tail -c 32 "$1" | cut -b 1-8 2>/dev/null)
-					if [ "${APETAGEX}" = "APETAGEX" ]; then
-						LENGTH=$(tail -c 32 "$1" | cut -b 13-16 | od -t u4 | awk '{printf $2}') 2>/dev/null
-						tail -c ${LENGTH} "$1" | grep -a CUESHEET >/dev/null 2>&1
-						if [ $? -eq 0 ]; then
-							CUESHEET=$(tail -c ${LENGTH} "$1" | sed 's/.*CUESHEET.//g' 2>/dev/null)
-							[ $? -ne 0 ] && CUESHEET=""
-						fi
-					fi
-				fi
-
-				if [ -n "${CUESHEET}" ]; then
-					$msg "${cP}Found internal cue sheet$cZ\n"
-					TMPCUE=$(mktemp "${TMPCUE}")
-					CUE="${TMPCUE}"
-					echo "${CUESHEET}" > "${CUE}"
-					TMPCUE="${HOME}/.split2flac_XXXXX.cue"
-
-					if [ $? -ne 0 ]; then
-						emsg "Unable to save internal cue sheet\n"
-						return 1
-					fi
-				else
-					unset CUE
+				CUE="${FILE%.*}.cue"
+				if [ ! -r "${CUE}" ]; then
+					extract_cue
 				fi
 			fi
+		else
+			extract_cue
 		fi
 	fi
 
@@ -358,21 +370,29 @@ split_file () {
 			&& emsg "Cue sheet is not utf-8\n" \
 			|| emsg "Unable to convert cue sheet from ${CHARSET} to utf-8\n"
 
-		if [ ${NASK} -eq 0 ]; then
-			while [ 1 ]; do
-				echo -n "Please enter the charset (or just press ENTER to ignore) > "
-				read CHARSET
-
-				[ -z "${CHARSET}" ] && break
-				$msg "${cG}Converted cue sheet:$cZ\n"
-				iconv -f "${CHARSET}" -t utf-8 "${CUE}" || continue
-
-				echo -n "Is this right? [Y/n] > "
-				read YEP
-				[ -z "${YEP}" -o "${YEP}" = "y" -o "${YEP}" = "Y" ] && break
-			done
-
+		echo -n "Do you whant to auto detect charset? [Y/n] > "
+		read YEP
+		if [ -z "${YEP}" -o "${YEP}" = "y" -o "${YEP}" = "Y" ]; then
+			CHARSET=`file -b --mime-encoding "${CUE}"`
+			echo "Charset detected : ${CHARSET}"
 			CUESHEET=$(iconv -f "${CHARSET}" -t utf-8 "${CUE}" 2>/dev/null)
+		else
+			if [ ${NASK} -eq 0 ]; then
+				while [ 1 ]; do
+					echo -n "Please enter the charset (or just press ENTER to ignore) > "
+					read CHARSET
+	
+					[ -z "${CHARSET}" ] && break
+					$msg "${cG}Converted cue sheet:$cZ\n"
+					iconv -f "${CHARSET}" -t utf-8 "${CUE}" || continue
+	
+					echo -n "Is this right? [Y/n] > "
+					read YEP
+					[ -z "${YEP}" -o "${YEP}" = "y" -o "${YEP}" = "Y" ] && break
+				done
+
+				CUESHEET=$(iconv -f "${CHARSET}" -t utf-8 "${CUE}" 2>/dev/null)
+			fi
 		fi
 	fi
 
@@ -687,7 +707,7 @@ split_file () {
 					cp -r \"${SDIR}/\$i\" \"\${OUT}/\"; done"
 		fi
 	fi
-
+	
 	rm -f "${TMPPIC}"
 	rm -f "${TMPCUE}"
 
@@ -699,7 +719,7 @@ split_file () {
 			read YEP
 		fi
 
-		[ "${YEP}" = "y" -o "${YEP}" = "Y" -o ${FORCE} -eq 1 ] && rm -f "${FILE}"
+		[ "${YEP}" = "y" -o "${YEP}" = "Y" -o ${FORCE} -eq 1 ] && rm -rf "${FILE}"
 	fi
 
 	return 0
