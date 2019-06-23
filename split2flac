@@ -231,6 +231,11 @@ if [ ${SAVE} -eq 1 ]; then
 	$msg "${cP}Configuration saved$cZ\n"
 fi
 
+case "$OSTYPE" in
+	darwin*|bsd*) esed='sed -E' ;;
+	*) esed='sed' ;;
+esac
+
 # use flake if possible
 command -v flake >/dev/null && FLAC_ENCODER="flake" || FLAC_ENCODER="flac"
 
@@ -453,7 +458,7 @@ split_file () {
 		return 1
 	fi
 
-	TAG_GENRE=$(grep 'REM[ \t]\+GENRE[ \t]\+' "${CUE}" | head -1 | sed 's/REM[ \t]\+GENRE[ \t]\+//;s/^"\(.*\)"$/\1/')
+	TAG_GENRE=$(grep 'REM[ \t]\+GENRE[ \t]\+' "${CUE}" | head -1 | $esed 's/REM[[:space:]]+GENRE[[:space:]]+//')
 
 	YEAR=$(awk '{ if (/REM[ \t]+DATE/) { printf "%i", $3; exit } }' < "${CUE}")
 	YEAR=$(echo ${YEAR} | tr -d -c '[:digit:]')
