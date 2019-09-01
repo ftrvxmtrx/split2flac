@@ -231,6 +231,11 @@ if [ ${SAVE} -eq 1 ]; then
 	$msg "${cP}Configuration saved$cZ\n"
 fi
 
+case "$OSTYPE" in
+	darwin*|bsd*) esed='sed -E' ;;
+	*) esed='sed' ;;
+esac
+
 # use flake if possible
 command -v flake >/dev/null && FLAC_ENCODER="flake" || FLAC_ENCODER="flac"
 
@@ -286,8 +291,10 @@ update_pattern () {
 
 # splits a file
 split_file () {
-	TMPCUE="${HOME}/.split2flac_XXXXX.cue"
+	TMPCUE="$(mktemp).cue"
 	FILE="$1"
+
+	trap 'rm -f $TMPCUE &>/dev/null' EXIT
 
 	if [ ! -r "${FILE}" ]; then
 		emsg "Can not read the file\n"
@@ -321,10 +328,8 @@ split_file () {
 
 				if [ -n "${CUESHEET}" ]; then
 					$msg "${cP}Found internal cue sheet$cZ\n"
-					TMPCUE=$(mktemp "${TMPCUE}")
 					CUE="${TMPCUE}"
 					echo "${CUESHEET}" > "${CUE}"
-					TMPCUE="${HOME}/.split2flac_XXXXX.cue"
 
 					if [ $? -ne 0 ]; then
 						emsg "Unable to save internal cue sheet\n"
@@ -342,6 +347,8 @@ split_file () {
 		emsg "No cue sheet\n"
 		return 1
 	fi
+
+	$msg "${cG}Cue sheet     :$cZ ${CUE}\n"
 
 	# cue sheet charset
 	[ -z "${CHARSET}" ] && CHARSET="utf-8" || $msg "${cG}Cue charset   : $cP${CHARSET} -> utf-8$cZ\n"
@@ -377,7 +384,6 @@ split_file () {
 	fi
 
 	# save converted cue sheet
-	TMPCUE=$(mktemp "${TMPCUE}")
 	CUE="${TMPCUE}"
 	echo "${CUESHEET}" > "${CUE}"
 
@@ -411,7 +417,6 @@ split_file () {
 		fi
 	fi
 
-	$msg "${cG}Cue sheet     :$cZ ${CUE}\n"
 	$msg "${cG}Cover image   :$cZ ${PIC:-not set}\n"
 
 	# file removal warning
@@ -453,7 +458,7 @@ split_file () {
 		return 1
 	fi
 
-	TAG_GENRE=$(grep 'REM[ \t]\+GENRE[ \t]\+' "${CUE}" | head -1 | sed 's/REM[ \t]\+GENRE[ \t]\+//;s/^"\(.*\)"$/\1/')
+	TAG_GENRE=$(grep 'REM[ \t]\+GENRE[ \t]\+' "${CUE}" | head -1 | $esed 's/REM[[:space:]]+GENRE[[:space:]]+//')
 
 	YEAR=$(awk '{ if (/REM[ \t]+DATE/) { printf "%i", $3; exit } }' < "${CUE}")
 	YEAR=$(echo ${YEAR} | tr -d -c '[:digit:]')
@@ -689,7 +694,6 @@ split_file () {
 	fi
 
 	rm -f "${TMPPIC}"
-	rm -f "${TMPCUE}"
 
 	if [ ${DRY} -ne 1 -a ${REMOVE} -eq 1 ]; then
 		YEP="n"
