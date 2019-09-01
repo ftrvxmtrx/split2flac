@@ -48,7 +48,7 @@ REPLAY_GAIN=0
 FORMAT="${0##*split2}"
 DIR="."
 OUTPATTERN="@artist/{@year - }@album/@track - @title.@ext"
-COPYMASKS="[Cc]overs \*.log \*.txt \*.jpg \*.cbr"
+COPYMASKS="[Cc]overs *.log *.txt *.jpg *.cbr"
 COPYFILES=1
 ENCA_ARGS=""
 
@@ -677,14 +677,12 @@ split_file () {
 		old=`pwd`
 		cd "${SDIR}"
 		$msg "\n${cG}Copying files:$cZ\n"
-		eval "for i in ${COPYMASKS}; do \
-				test -r \"\$i\" && \
-				echo \"   +> \$i\" 2>/dev/null; done"
+		eval "ls -1 ${COPYMASKS} 2>/dev/null | sed 's/^/   +> /g'"
 		cd "${old}"
 		if [ ${DRY} -ne 1 ]; then
 			eval "for i in ${COPYMASKS}; do \
-					test -r/\"${SDIR}/\$i\" && \
-					cp -r \"${SDIR}/\$i\" \"\${OUT}/\"; done"
+					test -r /\"${SDIR}/\"\$i && \
+					cp -r \"${SDIR}/\"\$i \"\${OUT}/\"; done"
 		fi
 	fi
 
