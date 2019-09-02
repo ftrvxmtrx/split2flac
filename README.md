@@ -1,3 +1,6 @@
+See [unflac](https://github.com/ftrvxmtrx/unflac) as a possible replacement
+in the (hopefully) nearest future.
+
 split2flac
 ==========
 
