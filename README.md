@@ -1,5 +1,4 @@
-See [unflac](https://github.com/ftrvxmtrx/unflac) as a possible replacement
-in the (hopefully) nearest future.
+See [unflac](https://github.com/ftrvxmtrx/unflac) as a better replacement of this project.
 
 split2flac
 ==========
