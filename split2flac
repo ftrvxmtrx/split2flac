@@ -741,6 +741,11 @@ split_collection () {
 	return 0
 }
 
+# Defined current dir as input if undefined
+if [ -z "${INPATH}" ]; then
+	INPATH="."
+fi
+
 if [ -d "${INPATH}" ]; then
 	if [ ! -x "${INPATH}" ]; then
 		emsg "Directory \"${INPATH}\" is not accessible\n"
